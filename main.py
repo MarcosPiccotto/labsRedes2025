@@ -16,10 +16,9 @@ peliculas = [
     {'id': 12, 'titulo': 'Fight Club', 'genero': 'Drama'}
 ]
 
-# preguntar si siempre el id va a ser +1 en de la pos del arreglo o es cuestion de diseño
-# preguntar si siempre el id va a ser +1 en de la pos del arreglo o es cuestion de diseño
-# preguntar si siempre el id va a ser +1 en de la pos del arreglo o es cuestion de diseño
-# preguntar si siempre el id va a ser +1 en de la pos del arreglo o es cuestion de diseño
+def is_valid_id(id):
+    return id < 1 or id > len(peliculas)  
+
 
 def obtener_peliculas():
     return jsonify(peliculas)
@@ -27,11 +26,10 @@ def obtener_peliculas():
 
 def obtener_pelicula(id):
     # Lógica para buscar la película por su ID y devolver sus detalles
-    pelicula_encontrada = {"error":"Pelicula no encontrada"}
-    for i in range(len(peliculas)):
-        if peliculas[i]["id"] == id:
-            pelicula_encontrada = peliculas[i]
-
+    if(is_valid_id(id)):
+        return jsonify({"error": "Invalid movie ID"}), 400
+    
+    pelicula_encontrada = peliculas[id-1]
     return jsonify(pelicula_encontrada)
 
 
@@ -42,24 +40,36 @@ def agregar_pelicula():
         'genero': request.json['genero']
     }
     peliculas.append(nueva_pelicula)
-    print(peliculas)
     return jsonify(nueva_pelicula), 201
+
 
 def actualizar_pelicula(id):
     # Lógica para buscar la película por su ID y actualizar sus detalles
-    return jsonify(pelicula_actualizada)
+    if is_valid_id(id):
+        return jsonify({"error": "Invalid movie ID"}), 400
+    
+    nueva_pelicula = request.json
+    if "id" in nueva_pelicula.keys():
+        return jsonify({"error": "ID modification is not allowed"}), 400
+    
+    peliculas[id-1] = {
+        "id":id,
+        **nueva_pelicula
+    }
+    return '', 204
+
 
 def eliminar_pelicula(id):
     # Lógica para buscar la película por su ID y eliminarla
-    len_peliculas = len(peliculas)
 
-    if(id > len_peliculas):
-        return jsonify({'Error': 'No hay una pelicula con ese indice'})
+    if is_valid_id(id):
+        return jsonify({"error": "Invalid movie ID"}), 400
     
     del peliculas[id-1]
-    for i in range(id, len(peliculas)):
+    for i in range(id-1, len(peliculas)):
         peliculas[i]["id"] -= 1 
-    return jsonify({'mensaje': 'Película eliminada correctamente'})
+    return '', 204
+
 
 def obtener_nuevo_id():
     if len(peliculas) > 0:
@@ -74,6 +84,7 @@ app.add_url_rule('/peliculas/<int:id>', 'obtener_pelicula', obtener_pelicula, me
 app.add_url_rule('/peliculas', 'agregar_pelicula', agregar_pelicula, methods=['POST'])
 app.add_url_rule('/peliculas/<int:id>', 'actualizar_pelicula', actualizar_pelicula, methods=['PUT'])
 app.add_url_rule('/peliculas/<int:id>', 'eliminar_pelicula', eliminar_pelicula, methods=['DELETE'])
+
 
 if __name__ == '__main__':
     app.run()
