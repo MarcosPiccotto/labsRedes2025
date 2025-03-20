@@ -16,7 +16,7 @@ peliculas = [
     {'id': 12, 'titulo': 'Fight Club', 'genero': 'Drama'}
 ]
 
-def id_valido(id):
+def id_invalido(id):
     """
     Verfica que un id este en rango valido
 
@@ -52,7 +52,7 @@ def obtener_pelicula(id):
     400 si el id es invalido.
     """
 
-    if(id_valido(id)):
+    if(id_invalido(id)):
         return jsonify({"Error": "ID de película inválido"}), 400
     
     pelicula_encontrada = peliculas[id-1]
@@ -98,7 +98,7 @@ def actualizar_pelicula(id):
     400 si el id es invalido o se intenta modificar el id.
     """
     
-    if id_valido(id):
+    if id_invalido(id):
         return jsonify({"error": "ID de película inválido"}), 400
     
     nueva_pelicula = request.json
@@ -128,7 +128,7 @@ def eliminar_pelicula(id):
     400 si el id es invalido o se intenta modificar el id.
     """
 
-    if id_valido(id):
+    if id_invalido(id):
         return jsonify({"error": "ID de película inválido"}), 400
     
     del peliculas[id-1]
@@ -151,11 +151,35 @@ def obtener_nuevo_id():
         return 1
 
 
+def obtener_peliculas_genero(genero):
+    """"
+    Devuelve el listado de peliculas segun el genero
+
+    Parametros:
+    genero (string)
+
+    Retorna
+    Un objeto JSON con la lista de películas del genero pasado ?.
+    """
+    genero = genero.capitalize()
+
+    peliculas_gen = []
+    for pelicula in peliculas:
+        if pelicula["genero"] == genero:
+            peliculas_gen.append(pelicula)
+
+    if peliculas_gen == [] :
+        return jsonify({"error": "Género no encontrado"}), 400
+    return jsonify(peliculas_gen),200
+
+
 app.add_url_rule('/peliculas', 'obtener_peliculas', obtener_peliculas, methods=['GET'])
 app.add_url_rule('/peliculas/<int:id>', 'obtener_pelicula', obtener_pelicula, methods=['GET'])
 app.add_url_rule('/peliculas', 'agregar_pelicula', agregar_pelicula, methods=['POST'])
 app.add_url_rule('/peliculas/<int:id>', 'actualizar_pelicula', actualizar_pelicula, methods=['PUT'])
 app.add_url_rule('/peliculas/<int:id>', 'eliminar_pelicula', eliminar_pelicula, methods=['DELETE'])
+app.add_url_rule('/peliculas/<string:genero>', 'obtener_peliculas_genero', obtener_peliculas_genero, methods=['GET'])
+
 
 
 if __name__ == '__main__':

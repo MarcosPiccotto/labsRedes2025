@@ -4,6 +4,7 @@
 - se puede editar el id de una pelicula ??
 - se puede editar solo un campo una pelicula o tiene que ser todo completo ?
 - en agregar peliculas deberiamos obligar que llene todos los campos ?
+- para preguntar por genero ser estrictos o flexibles.
 
 ------
 
