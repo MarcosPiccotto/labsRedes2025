@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from random import randint
 
 app = Flask(__name__)
 peliculas = [
@@ -168,9 +169,39 @@ def obtener_peliculas_genero(genero):
         if pelicula["genero"] == genero:
             peliculas_gen.append(pelicula)
 
-    if peliculas_gen == [] :
+    if not peliculas_gen:
         return jsonify({"error": "Género no encontrado"}), 400
-    return jsonify(peliculas_gen),200
+    return jsonify(peliculas_gen), 200
+
+
+def obtener_pelicula_random():
+    '''
+    Obtiene una pelicula random.
+    
+    Retorna:
+    Devuelve peli_random con la info de la pelicula elegida.
+    '''
+    rand = randint(0, len(peliculas)-1)
+    peli_random = peliculas[rand]
+    return jsonify(peli_random), 200
+
+
+def obtener_peli_random_gen(genero):
+    '''
+    Crea una lista con las peliculas del genero elegido.
+    
+    Retorna:
+    Devuelve una pelicula random de esa lista.
+    '''
+    peli_rand_gen = []
+    for pelicula in peliculas:
+        if pelicula["genero"] == genero:
+            peli_rand_gen.append(pelicula)
+    if not peli_rand_gen:
+        return jsonify({"Error": "No hay películas de ese género"}), 400
+    rand_gen = randint(0, len(peli_rand_gen) - 1)
+    peli_random_gen = peli_rand_gen[rand_gen]
+    return jsonify(peli_random_gen), 200
 
 
 app.add_url_rule('/peliculas', 'obtener_peliculas', obtener_peliculas, methods=['GET'])
@@ -179,7 +210,8 @@ app.add_url_rule('/peliculas', 'agregar_pelicula', agregar_pelicula, methods=['P
 app.add_url_rule('/peliculas/<int:id>', 'actualizar_pelicula', actualizar_pelicula, methods=['PUT'])
 app.add_url_rule('/peliculas/<int:id>', 'eliminar_pelicula', eliminar_pelicula, methods=['DELETE'])
 app.add_url_rule('/peliculas/<string:genero>', 'obtener_peliculas_genero', obtener_peliculas_genero, methods=['GET'])
-
+app.add_url_rule('/peliculas/random', 'obtener_pelicula_random', obtener_pelicula_random, methods=['GET'])
+app.add_url_rule('/peliculas/random/<string:genero>', 'obtener_peli_random_gen', obtener_peli_random_gen, methods=['GET'])
 
 
 if __name__ == '__main__':

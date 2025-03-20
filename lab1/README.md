@@ -20,6 +20,7 @@
 
 - estan bien todas las respuestas de las rutas ?
 - en agregar peliculas deberiamos obligar que llene todos los campos ?
+- ver con los profes si los datos salen en minuscula o entran con el formato mas hincha pelota posible
 
 # Cosas que poner en el readme
 - queriamos que los codigo de http sean algunos otros como el 204 y demas, pero lo cambiamos por los tests
