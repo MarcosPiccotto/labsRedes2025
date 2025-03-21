@@ -16,7 +16,7 @@ class NextHoliday:
         self.year = date.today().year
         self.holiday = None
 
-    def set_next(self, holidays):
+    def set_next(self, holidays, types):
         now = date.today()
         today = {
             'day': now.day,
@@ -24,22 +24,25 @@ class NextHoliday:
         }
 
         holiday = next(
-            (h for h in holidays if h['mes'] == today['month'] and h['dia'] > today['day'] or h['mes'] > today['month']),
-            holidays[0]
+            (h for h in holidays if h['tipo'] == types and h['mes'] == today['month'] and h['dia'] > today['day'] or h['mes'] > today['month'] and h['tipo'] == types),
+            {"error": "capo no hay"}
         )
 
         self.loading = False
         self.holiday = holiday
 
-    def fetch_holidays(self):
+    def fetch_holidays(self,type):
         response = requests.get(get_url(self.year))
-        data = response.json()
-        self.set_next(data)
+        data = response.json()  
+        self.set_next(data, type)
 
     def render(self):
         if self.loading:
             print("Buscando...")
         else:
+            if(len(self.holiday.keys()) == 1):
+                print(self.holiday["error"])
+                return
             print("Próximo feriado")
             print(self.holiday['motivo'])
             print("Fecha:")
@@ -49,6 +52,6 @@ class NextHoliday:
             print("Tipo:")
             print(self.holiday['tipo'])
 
-next_holiday = NextHoliday()
-next_holiday.fetch_holidays()
-next_holiday.render()
+#next_holiday = NextHoliday()
+#next_holiday.fetch_holidays("trasladable")
+#next_holiday.render()

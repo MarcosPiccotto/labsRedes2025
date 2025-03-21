@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from random import randint
+from proximo_feriado import NextHoliday
 
 app = Flask(__name__)
 peliculas = [
@@ -179,29 +180,63 @@ def obtener_pelicula_random():
     Obtiene una pelicula random.
     
     Retorna:
-    Devuelve peli_random con la info de la pelicula elegida.
+    Una JSON con detalles de una pelicula random.
     '''
     rand = randint(0, len(peliculas)-1)
     peli_random = peliculas[rand]
     return jsonify(peli_random), 200
 
 
-def obtener_peli_random_gen(genero):
+def obtener_pelicula_random_gen(genero):
     '''
     Crea una lista con las peliculas del genero elegido.
     
+    Parametros:
+    genero (string)
+    
     Retorna:
-    Devuelve una pelicula random de esa lista.
+    Una pelicula random de esa lista.
     '''
-    peli_rand_gen = []
+    pelicula_rand_gen = []
     for pelicula in peliculas:
         if pelicula["genero"] == genero:
-            peli_rand_gen.append(pelicula)
-    if not peli_rand_gen:
+            pelicula_rand_gen.append(pelicula)
+    if not pelicula_rand_gen:
         return jsonify({"Error": "No hay películas de ese género"}), 400
-    rand_gen = randint(0, len(peli_rand_gen) - 1)
-    peli_random_gen = peli_rand_gen[rand_gen]
+    rand_gen = randint(0, len(pelicula_rand_gen) - 1)
+    peli_random_gen = pelicula_rand_gen[rand_gen]
     return jsonify(peli_random_gen), 200
+
+def obtener_pelicula_feriado(genero):
+    '''
+    Obtiene el proximo feriado con la API externa y una pelicula random segun algun genero.
+    
+    Parametros:
+    genero (string)
+    
+    Retorna: 
+    Un JSON con toda información.
+    '''
+    next_holiday = NextHoliday()
+    next_holiday.fetch_holidays("inamovible")
+    
+    pelicula_rand_gen = []
+    for pelicula in peliculas:
+        if pelicula["genero"] == genero:
+            pelicula_rand_gen.append(pelicula)
+    if not pelicula_rand_gen:
+        return jsonify({"Error": "No hay películas de ese género"}), 400
+    
+    rand_gen = randint(0, len(pelicula_rand_gen) - 1)
+    peli_random_gen = pelicula_rand_gen[rand_gen]
+    
+    eleccion = {'titulo': peli_random_gen['titulo'],
+                'genero': peli_random_gen['genero'],
+                'motivo': next_holiday.holiday['motivo'],
+                'dia': next_holiday.holiday['dia'],
+                'mes': next_holiday.holiday['mes']}
+    
+    return jsonify(eleccion), 200
 
 
 app.add_url_rule('/peliculas', 'obtener_peliculas', obtener_peliculas, methods=['GET'])
@@ -209,10 +244,12 @@ app.add_url_rule('/peliculas/<int:id>', 'obtener_pelicula', obtener_pelicula, me
 app.add_url_rule('/peliculas', 'agregar_pelicula', agregar_pelicula, methods=['POST'])
 app.add_url_rule('/peliculas/<int:id>', 'actualizar_pelicula', actualizar_pelicula, methods=['PUT'])
 app.add_url_rule('/peliculas/<int:id>', 'eliminar_pelicula', eliminar_pelicula, methods=['DELETE'])
+
 app.add_url_rule('/peliculas/<string:genero>', 'obtener_peliculas_genero', obtener_peliculas_genero, methods=['GET'])
 app.add_url_rule('/peliculas/random', 'obtener_pelicula_random', obtener_pelicula_random, methods=['GET'])
-app.add_url_rule('/peliculas/random/<string:genero>', 'obtener_peli_random_gen', obtener_peli_random_gen, methods=['GET'])
+app.add_url_rule('/peliculas/random/<string:genero>', 'obtener_pelicula_random_gen', obtener_pelicula_random_gen, methods=['GET'])
 
+app.add_url_rule('/peliculas/feriado/<string:genero>', 'obtener_pelicula_feriado', obtener_pelicula_feriado, methods=['GET'])
 
 if __name__ == '__main__':
     app.run()
