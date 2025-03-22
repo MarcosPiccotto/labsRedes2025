@@ -173,6 +173,27 @@ def obtener_peliculas_genero(genero):
     return jsonify(peliculas_gen), 200
 
 
+def obtener_peliculas_palabra(palabra):
+    '''
+    Devuelve un listado de películas que contienen el string de la variable palabra en el título.
+
+    Parámetros:
+    palabra (string)
+
+    Retorna:
+    Devuelve un objeto JSON con el listado mencionado.
+    '''
+    peliculas_palabra = []
+    palabra = palabra.lower()
+    for pelicula in peliculas:
+        if palabra in pelicula['titulo'].lower():
+            peliculas_palabra.append(pelicula)
+
+    if not peliculas_palabra:
+        return jsonify({"error": "No hay películas con esa palabra en su título"}), 400
+    return jsonify(peliculas_palabra), 200
+
+
 def obtener_pelicula_random():
     '''
     Obtiene una pelicula random.
@@ -243,7 +264,8 @@ app.add_url_rule('/peliculas', 'agregar_pelicula', agregar_pelicula, methods=['P
 app.add_url_rule('/peliculas/<int:id>', 'actualizar_pelicula', actualizar_pelicula, methods=['PUT'])
 app.add_url_rule('/peliculas/<int:id>', 'eliminar_pelicula', eliminar_pelicula, methods=['DELETE'])
 
-app.add_url_rule('/peliculas/<string:genero>', 'obtener_peliculas_genero', obtener_peliculas_genero, methods=['GET'])
+app.add_url_rule('/peliculas/genero/<string:genero>', 'obtener_peliculas_genero', obtener_peliculas_genero, methods=['GET'])
+app.add_url_rule('/peliculas/<string:palabra>', 'obtener_peliculas_palabra', obtener_peliculas_palabra, methods=['GET'])
 app.add_url_rule('/peliculas/random', 'obtener_pelicula_random', obtener_pelicula_random, methods=['GET'])
 app.add_url_rule('/peliculas/random/<string:genero>', 'obtener_pelicula_random_gen', obtener_pelicula_random_gen, methods=['GET'])
 
