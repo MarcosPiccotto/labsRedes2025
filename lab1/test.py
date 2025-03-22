@@ -55,3 +55,49 @@ if response.status_code == 200:
     print("Película eliminada correctamente.")
 else:
     print("Error al eliminar la película.")
+print()
+
+# Obtener peliculas de un género especifico ver la vuelta de la api
+genero = "Acción"
+response = requests.get(f'http://localhost:5000/peliculas/{genero}')
+if response.status_code == 200:
+    peliculas = response.json()
+    print(f"Películas existentes del género {genero}:")
+    for pelicula in peliculas:
+        print(f"ID: {pelicula['id']}, Título: {pelicula['titulo']}, Género: {pelicula['genero']}")
+else:
+    print(f"No hay películas disponibles del género {genero}.")
+print()
+
+# Obtener una película que tenga determinado string en el título
+
+# obtener una pelicula random
+response = requests.get(f'http://localhost:5000/peliculas/random')
+if response.status_code == 200:
+    pelicula = response.json()
+    print(f"Películas aleatoria: ")
+    print(f"ID: {pelicula['id']}, Título: {pelicula['titulo']}, Género: {pelicula['genero']}")
+print()
+
+# Obtener una pelicula aleatoria de un género especifico
+genero = "Acción"
+response = requests.get(f'http://localhost:5000/peliculas/random/{genero}')
+if response.status_code == 200:
+    pelicula = response.json()
+    print(f"Película aleatoria del género {genero}:")
+    print(f"ID: {pelicula['id']}, Título: {pelicula['titulo']}, Género: {pelicula['genero']}")
+else:
+    print(f"No hay películas disponibles del género {genero}.")
+print()
+
+# Obtener una pelicula segun el feriado mas cercano
+# genero = "Acción"
+# response = requests.get(f'http://localhost:5000/peliculas/random/{genero}')
+# if response.status_code == 200:
+#     pelicula = response.json()
+#     print(pelicula)
+#     print(f"Película aleatoria del género {genero}:")
+#     # print(f"ID: {pelicula['id']}, Título: {pelicula['titulo']}, Género: {pelicula['genero']}, Motivo: {pelicula['motivo']}, Mes: {pelicula['mes']}, Dia: {pelicula['dia']}")
+# else:
+#     print(f"No hay películas disponibles del género {genero}.")
+# print()

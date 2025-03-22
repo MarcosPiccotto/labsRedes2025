@@ -25,7 +25,7 @@ class NextHoliday:
 
         holiday = next(
             (h for h in holidays if h['tipo'] == types and h['mes'] == today['month'] and h['dia'] > today['day'] or h['mes'] > today['month'] and h['tipo'] == types),
-            {"error": "capo no hay"}
+            {"error": f"No se encuentra ningun feriado de tipo {types}"}
         )
 
         self.loading = False
@@ -46,12 +46,12 @@ class NextHoliday:
             print("Próximo feriado")
             print(self.holiday['motivo'])
             print("Fecha:")
-            print(day_of_week(self.holiday['dia'], self.holiday['mes'] - 1, self.year))
+            print(day_of_week(self.holiday['dia'], self.holiday['mes'] , self.year))
             print(self.holiday['dia'])
             print(months[self.holiday['mes'] - 1])
             print("Tipo:")
             print(self.holiday['tipo'])
 
 #next_holiday = NextHoliday()
-#next_holiday.fetch_holidays("trasladable")
+#next_holiday.fetch_holidays("puente")
 #next_holiday.render()

@@ -19,28 +19,28 @@ peliculas = [
 ]
 
 def id_invalido(id):
-    """
+    '''
     Verfica que un id este en rango valido
 
     Retorna:
     True si esta en rango valido
     False si no esta en rango valido
-    """
+    '''
     return id < 1 or id > len(peliculas)  
 
 
 def obtener_peliculas():
-    """
+    '''
     Obtiene la lista completa de películas disponibles.
 
     Retorna:
     Un objeto JSON con la lista de películas.
-    """
+    '''
     return jsonify(peliculas)
 
 
 def obtener_pelicula(id):
-    """
+    '''
     Busca una película por su ID y devuelve sus detalles en formato JSON.
 
     Parámetros:
@@ -52,7 +52,7 @@ def obtener_pelicula(id):
     Retorna: 
     200 si la película se agregó correctamente.
     400 si el id es invalido.
-    """
+    '''
 
     if(id_invalido(id)):
         return jsonify({"Error": "ID de película inválido"}), 400
@@ -62,7 +62,7 @@ def obtener_pelicula(id):
 
 
 def agregar_pelicula():
-    """
+    '''
     Agrega una nueva película a la lista.
 
     Assert: recibir un JSON con los campos 'nombre' y 'genero'.
@@ -70,7 +70,7 @@ def agregar_pelicula():
     Retorna:
     201 si la película se agregó correctamente, junto con la película agregada.
     400 si faltan parámetros obligatorios.
-    """
+    '''
 
     campos_pelicula_nueva = request.json.keys()
     if 'titulo' not in campos_pelicula_nueva or 'genero' not in campos_pelicula_nueva:
@@ -86,7 +86,7 @@ def agregar_pelicula():
 
 
 def actualizar_pelicula(id):
-    """
+    '''
     Actualiza una película por su ID y devuelve sus detalles en formato JSON.
 
     Parámetros:
@@ -98,8 +98,7 @@ def actualizar_pelicula(id):
     Retorna: 
     200 si la película se agregó correctamente.
     400 si el id es invalido o se intenta modificar el id.
-    """
-    
+    '''
     if id_invalido(id):
         return jsonify({"error": "ID de película inválido"}), 400
     
@@ -116,7 +115,7 @@ def actualizar_pelicula(id):
 
 
 def eliminar_pelicula(id):
-    """
+    '''
     Elimina una película por su ID.
 
     Parámetros:
@@ -128,8 +127,7 @@ def eliminar_pelicula(id):
     Retorna: 
     200 si la película se agregó correctamente.
     400 si el id es invalido o se intenta modificar el id.
-    """
-
+    '''
     if id_invalido(id):
         return jsonify({"error": "ID de película inválido"}), 400
     
@@ -140,12 +138,12 @@ def eliminar_pelicula(id):
 
 
 def obtener_nuevo_id():
-    """
+    '''
     Obtener un nuevo id.
 
     Retorna: 
     Un id (int).
-    """
+    '''
     if len(peliculas) > 0:
         ultimo_id = peliculas[-1]['id']
         return ultimo_id + 1
@@ -154,7 +152,7 @@ def obtener_nuevo_id():
 
 
 def obtener_peliculas_genero(genero):
-    """"
+    '''
     Devuelve el listado de peliculas segun el genero
 
     Parametros:
@@ -162,7 +160,7 @@ def obtener_peliculas_genero(genero):
 
     Retorna
     Un objeto JSON con la lista de películas del genero pasado ?.
-    """
+    '''
     genero = genero.capitalize()
 
     peliculas_gen = []
@@ -217,15 +215,15 @@ def obtener_pelicula_feriado(genero):
     Retorna: 
     Un JSON con toda información.
     '''
-    next_holiday = NextHoliday()
-    next_holiday.fetch_holidays("inamovible")
-    
     pelicula_rand_gen = []
     for pelicula in peliculas:
         if pelicula["genero"] == genero:
             pelicula_rand_gen.append(pelicula)
     if not pelicula_rand_gen:
         return jsonify({"Error": "No hay películas de ese género"}), 400
+    
+    next_holiday = NextHoliday()
+    next_holiday.fetch_holidays("inamovible")
     
     rand_gen = randint(0, len(pelicula_rand_gen) - 1)
     peli_random_gen = pelicula_rand_gen[rand_gen]
