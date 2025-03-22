@@ -134,7 +134,7 @@ def eliminar_pelicula(id):
     del peliculas[id-1]
     for i in range(id-1, len(peliculas)):
         peliculas[i]["id"] -= 1 
-    return '', 200
+    return f'Pelicula numero {id} eliminada.', 200
 
 
 def obtener_nuevo_id():
@@ -191,6 +191,7 @@ def obtener_peliculas_palabra(palabra):
 
     if not peliculas_palabra:
         return jsonify({"error": "No hay películas con esa palabra en su título"}), 400
+    
     return jsonify(peliculas_palabra), 200
 
 
