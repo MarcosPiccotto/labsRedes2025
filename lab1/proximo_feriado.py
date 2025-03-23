@@ -16,22 +16,28 @@ class NextHoliday:
         self.year = date.today().year
         self.holiday = None
 
-    def set_next(self, holidays, types):
+    def set_next(self, holidays, type):
         now = date.today()
         today = {
             'day': now.day,
             'month': now.month
         }
-
-        holiday = next(
-            (h for h in holidays if h['tipo'] == types and h['mes'] == today['month'] and h['dia'] > today['day'] or h['mes'] > today['month'] and h['tipo'] == types),
-            {"error": f"No se encuentra ningun feriado de tipo {types}"}
-        )
-
+        
+        if type == None:
+            holiday = next(
+                (h for h in holidays if h['mes'] == today['month'] and h['dia'] > today['day'] or h['mes'] > today['month']),
+                holidays[0]
+            )
+        else:
+            holiday = next(
+                (h for h in holidays if h['tipo'] == type and h['mes'] == today['month'] and h['dia'] > today['day'] or h['mes'] > today['month'] and h['tipo'] == type),
+                {"error": f"No se encuentra ningun feriado de tipo: {type}"}
+            )
+        
         self.loading = False
         self.holiday = holiday
 
-    def fetch_holidays(self,type):
+    def fetch_holidays(self,type=None):
         response = requests.get(get_url(self.year))
         data = response.json()  
         self.set_next(data, type)

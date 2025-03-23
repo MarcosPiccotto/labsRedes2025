@@ -10,8 +10,8 @@ print()
 
 # Agregar una nueva película
 nueva_pelicula = {
-    'titulo': 'Pelicula de prueba',
-    'genero': 'Acción'
+    'titulo': 'pelicula_de_prueba',
+    'genero': 'accion'
 }
 response = requests.post('http://localhost:5000/peliculas', json=nueva_pelicula)
 if response.status_code == 201:
@@ -36,8 +36,8 @@ print()
 # Actualizar los detalles de una película
 id_pelicula = 1  # ID de la película a actualizar
 datos_actualizados = {
-    'titulo': 'Nuevo título',
-    'genero': 'Comedia'
+    'titulo': 'nuevo_titulo',
+    'genero': 'comedia'
 }
 response = requests.put(f'http://localhost:5000/peliculas/{id_pelicula}', json=datos_actualizados)
 if response.status_code == 200:
@@ -57,9 +57,9 @@ else:
     print("Error al eliminar la película.")
 print()
 
-# Obtener peliculas de un género especifico ver la vuelta de la api
-genero = "Acción"
-response = requests.get(f'http://localhost:5000/peliculas/{genero}')
+# Obtener peliculas de un género especifico
+genero = "accion"
+response = requests.get(f'http://localhost:5000/peliculas/genero/{genero}')
 if response.status_code == 200:
     peliculas = response.json()
     print(f"Películas existentes del género {genero}:")
@@ -80,7 +80,7 @@ if response.status_code == 200:
 print()
 
 # Obtener una pelicula aleatoria de un género especifico
-genero = "Acción"
+genero = "accion"
 response = requests.get(f'http://localhost:5000/peliculas/random/{genero}')
 if response.status_code == 200:
     pelicula = response.json()
@@ -91,13 +91,24 @@ else:
 print()
 
 # Obtener una pelicula segun el feriado mas cercano
-# genero = "Acción"
-# response = requests.get(f'http://localhost:5000/peliculas/random/{genero}')
-# if response.status_code == 200:
-#     pelicula = response.json()
-#     print(pelicula)
-#     print(f"Película aleatoria del género {genero}:")
-#     # print(f"ID: {pelicula['id']}, Título: {pelicula['titulo']}, Género: {pelicula['genero']}, Motivo: {pelicula['motivo']}, Mes: {pelicula['mes']}, Dia: {pelicula['dia']}")
-# else:
-#     print(f"No hay películas disponibles del género {genero}.")
-# print()
+genero = "accion"
+response = requests.get(f'http://localhost:5000/peliculas/feriado/{genero}')
+if response.status_code == 200:
+    pelicula = response.json()
+    print(f"Película del genero {genero} para el proximo feriado:")
+    print(f"ID: {pelicula['id']}, Título: {pelicula['titulo']}, Género: {pelicula['genero']}, Motivo: {pelicula['motivo']}, Mes: {pelicula['mes']}, Dia: {pelicula['dia']}")
+else:
+    print(f"No hay peliculas del genero {genero} para el proximo feriado.")
+print()
+
+# Obtener peliculas que tenga cierta palabra en el titulo
+palabra = "in"
+response = requests.get(f'http://localhost:5000/peliculas/{palabra}')
+if response.status_code == 200:
+    peliculas = response.json()
+    print(f"Películas que contiene la palabra {palabra}:")
+    for pelicula in peliculas:
+        print(f"ID: {pelicula['id']}, Título: {pelicula['titulo']}, Género: {pelicula['genero']}")
+else:
+    print(f"No hay películas con esa palabra en su título")
+print()

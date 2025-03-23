@@ -36,13 +36,17 @@ def mock_response():
         # Simulamos la respuesta para obtener la lista de peliculas si la palabra esta en el titulo
         m.get('http://localhost:5000/peliculas/pulp', status_code=200, json=[{'id': 11, 'titulo': 'Pulp Fiction', 'genero': 'crimen'}])
 
-        """ # Simulamos la respuesta para obtener una pelicula segun el genero para el proximo feriado
-        m.get('http://localhost:5000/peliculas/feriado/Crimen', status_code=200, json=[{"dia": 24,
-                                                                                       "genero": "Crimen",
-                                                                                       "mes": 3,
-                                                                                       "motivo": "Día Nacional de la Memoria por la Verdad y la Justicia",
-                                                                                       "titulo": "Pulp Fiction"
-                                                                                      }]) """
+
+        # next_holiday = NextHoliday()
+        # next_holiday.fetch_holidays()
+        #next_holiday={"dia":24, "mes":3,"motivo":"dia de verdad"}
+        # Simulamos la respuesta para obtener una pelicula segun el genero para el proximo feriado
+        #m.get('http://localhost:5000/peliculas/feriado/crimen', status_code=200, json=[{"dia": next_holiday["dia"],
+                                                                                        # "genero": "crimen",
+                                                                                        # "mes": next_holiday["mes"],
+                                                                                        # "motivo": next_holiday["motivo"],
+                                                                                        # "titulo": "pulp_fiction"
+                                                                                        # }])
         
         yield m
 
@@ -79,7 +83,7 @@ def test_obtener_peliculas_genero(mock_response):
 
 def test_obtener_pelicula_random(mock_response):
     mock_response.get('http://localhost:5000/peliculas/random', status_code=200,
-                      text='{"id": 1, "titulo": "Fake", "genero": "crimen"}')
+                    text='{"id": 1, "titulo": "Fake", "genero": "crimen"}')
     response = requests.get('http://localhost:5000/peliculas/random')
     assert response.status_code == 200
     data = response.json()
@@ -96,9 +100,9 @@ def test_obtener_peliculas_palabra(mock_response):
     assert response.status_code == 200
     assert response.json()[0]['titulo'].lower() == 'pulp fiction'
 
-""" def test_obtener_pelicula_feriado(mock_response):
-    next_holiday = NextHoliday()
-    response = requests.get('http://localhost:5000/peliculas/feriado/Crimen')
-    assert response.status_code == 200
-    assert response.json()[0]['motivo'] == next_holiday.fetch_holidays("inamovible").holidays['motivo']
-    assert response.json()[0]['genero'].lower() == 'Crimen' """
+# def test_obtener_pelicula_feriado(mock_response):
+#     next_holiday = NextHoliday()
+#     response = requests.get('http://localhost:5000/peliculas/feriado/crimen')
+#     assert response.status_code == 200
+#     # assert response.json()[0]['motivo'] == next_holiday.fetch_holidays().holidays['motivo']
+#     assert response.json()[0]['genero'] == 'crimen'
