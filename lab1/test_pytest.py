@@ -6,7 +6,7 @@ from proximo_feriado import NextHoliday
 @pytest.fixture
 def mock_response():
     with requests_mock.Mocker() as m:
-        # Simulamos la respuesta para obtener todas las películas
+        #Simulamos la respuesta para obtener todas las películas
         m.get('http://localhost:5000/peliculas', json=[
             {'id': 1, 'titulo': 'Indiana Jones', 'genero': 'Acción'},
             {'id': 2, 'titulo': 'Star Wars', 'genero': 'Acción'}
@@ -36,17 +36,20 @@ def mock_response():
         # Simulamos la respuesta para obtener la lista de peliculas si la palabra esta en el titulo
         m.get('http://localhost:5000/peliculas/pulp', status_code=200, json=[{'id': 11, 'titulo': 'Pulp Fiction', 'genero': 'crimen'}])
 
+        # Simulamos la respuesta de la API de feriados
+        m.get('https://nolaborables.com.ar/api/v2/feriados/2025', json=[{"dia": 1, "mes": 1, "motivo": "Año Nuevo"}])
 
-        # next_holiday = NextHoliday()
-        # next_holiday.fetch_holidays()
-        #next_holiday={"dia":24, "mes":3,"motivo":"dia de verdad"}
-        # Simulamos la respuesta para obtener una pelicula segun el genero para el proximo feriado
-        #m.get('http://localhost:5000/peliculas/feriado/crimen', status_code=200, json=[{"dia": next_holiday["dia"],
-                                                                                        # "genero": "crimen",
-                                                                                        # "mes": next_holiday["mes"],
-                                                                                        # "motivo": next_holiday["motivo"],
-                                                                                        # "titulo": "pulp_fiction"
-                                                                                        # }])
+        next_holiday = NextHoliday()
+        next_holiday.fetch_holidays()
+
+        # Simulamos la respuesta para obtener una película según el feriado
+        m.get('http://localhost:5000/peliculas/feriado/crimen', status_code=200, json={
+            "dia": next_holiday.holiday["dia"],
+            "genero": "crimen",
+            "mes": next_holiday.holiday["mes"],
+            "motivo": next_holiday.holiday["motivo"],
+            "titulo": "pulp_fiction"
+        })
         
         yield m
 
@@ -100,9 +103,10 @@ def test_obtener_peliculas_palabra(mock_response):
     assert response.status_code == 200
     assert response.json()[0]['titulo'].lower() == 'pulp fiction'
 
-# def test_obtener_pelicula_feriado(mock_response):
-#     next_holiday = NextHoliday()
-#     response = requests.get('http://localhost:5000/peliculas/feriado/crimen')
-#     assert response.status_code == 200
-#     # assert response.json()[0]['motivo'] == next_holiday.fetch_holidays().holidays['motivo']
-#     assert response.json()[0]['genero'] == 'crimen'
+def test_obtener_pelicula_feriado(mock_response):
+    next_holiday = NextHoliday()
+    next_holiday.fetch_holidays()
+    response = requests.get('http://localhost:5000/peliculas/feriado/crimen')
+    assert response.status_code == 200
+    assert response.json()['motivo'] == next_holiday.holiday['motivo']
+    assert response.json()['genero'] == 'crimen'
