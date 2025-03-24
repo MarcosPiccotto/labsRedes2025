@@ -69,10 +69,16 @@ def agregar_pelicula():
 
     Retorna:
     201 si la película se agregó correctamente, junto con la película agregada.
+    202 si la pelicula ya está en la base de datos
     400 si faltan parámetros obligatorios.
     '''
     pelicula_nueva = request.json 
     campos_pelicula_nueva = pelicula_nueva.keys()
+
+    for i in range(0, len(peliculas)-1):
+        if peliculas[i]['titulo'] == pelicula_nueva['titulo']:
+            return jsonify(peliculas[i]), 202
+        
     if 'titulo' not in campos_pelicula_nueva or 'genero' not in campos_pelicula_nueva:
         return jsonify({"Error": "ID de película inválido"}), 400
     
