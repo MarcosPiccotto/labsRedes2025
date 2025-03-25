@@ -2,7 +2,7 @@ from flask import jsonify
 from random import randint
 from .utils import input_invalido, id_invalido
 from .data import peliculas
-from proximo_feriado import NextHoliday
+from proximo_feriado.proximo_feriado import NextHoliday
 
 def obtener_peliculas():
     '''

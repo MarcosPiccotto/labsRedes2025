@@ -1,7 +1,7 @@
 import requests
 import pytest
 import requests_mock
-from proximo_feriado import NextHoliday
+from proximo_feriado.proximo_feriado import NextHoliday
 
 @pytest.fixture
 def mock_response():
