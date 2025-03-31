@@ -28,7 +28,6 @@ class Connection:
             "get_slice": self.get_slice_handler,
             "quit": self.quit_handler
         }
-        self.quit = False
         self.connected = True
         self.buffer = ''
         # data que entra
@@ -37,19 +36,64 @@ class Connection:
 
     def quit_handler(self, _):
         print("Client requested to quit.")
-        self.quit = True
+        self.connected = False
+        self.socket.close()
         return CODE_OK, "OK"
 
     def get_file_listing_handler(self, args):
         list = os.listdir(self.dir)
+        self.buffer = "0 OK\r\n"
+        
         for l in list:
-            self.buffer += l
-        message = "Listado de archivos:"
-        self.socket.sendall((message + EOL).encode("ascii"))
+            try:
+                l.encode("ascii")
+                self.buffer += f"{l}\r\n"
+            except UnicodeEncodeError:
+                print(f"Nombre de archivo no ASCII omitido: {l}")
+        
+        try:
+            self.socket.sendall((self.buffer + EOL).encode("ascii"))
+        except Exception as e:
+            print(f"Error al enviar datos: {e}")
         return CODE_OK, "OK"
     
     def get_metadata_handler(self, args):
-        pass
+    # Verificar número de argumentos
+        if len(args) != 1:
+            self.socket.sendall(f"{INVALID_ARGUMENTS} Invalid arguments\r\n".encode("ascii"))
+            return INVALID_ARGUMENTS
+
+        # Construir la ruta completa del archivo
+        filepath = os.path.join(self.dir, args[0])
+
+        # Verificar si el archivo existe
+        if not os.path.isfile(filepath):
+            self.socket.sendall(f"{FILE_NOT_FOUND} File not found\r\n".encode("ascii"))
+            return FILE_NOT_FOUND
+
+        try:
+            # Obtener tamaño del archivo
+            size = os.path.getsize(filepath)
+
+            # Debug: Mostrar en el servidor qué tamaño se está obteniendo
+            print(f"DEBUG: Tamaño de '{filepath}' = {size} bytes")
+
+            # Enviar la respuesta con el formato correcto
+            response = f"{CODE_OK} OK\r\n{str(size)}\r\n"
+
+            # Debug: Mostrar qué se enviará
+            print(f"DEBUG: Enviando respuesta -> {repr(response)}")
+
+            self.socket.sendall(response.encode("ascii"))
+
+            return CODE_OK, "OK"
+
+        except OSError as e:
+            print(f"Error al obtener metadatos: {e}")
+            self.socket.sendall(f"{INTERNAL_ERROR} Internal error\r\n".encode("ascii"))
+            return INTERNAL_ERROR
+
+    
     
     def get_slice_handler(self, args):
         pass
@@ -79,9 +123,11 @@ class Connection:
         while self.connected:
             command = self._read_line()
 
+            # revisar
             if not command:
-                self.socket.send(f"{BAD_REQUEST} invalid request format\n".encode())
+                self.socket.send(f"{BAD_REQUEST} invalid request format\n".encode("ascii"))
                 continue
+                # me parece que es un break
             
             parts = command.split()
             if not parts:
@@ -95,5 +141,5 @@ class Connection:
                 print(f"args: {args}")
                 self.command[cmd](args)
             else:
-                self.socket.send(f"{INVALID_COMMAND} unknown command\n".encode())
+                self.socket.send(f"{INVALID_COMMAND} unknown command\n".encode("ascii"))
                 continue

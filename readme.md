@@ -65,3 +65,37 @@ textos = [
     "comando archivo. txt\r\n",    # mal
 ]
 
+kill -9 $(lsof -ti :19500) ; python3 server.py -p 19500
+
+server:
+Serving testdata on 0.0.0.0:19500.
+Servidor esperando conexiones...
+Connected by: ('127.0.0.1', 47242)
+cmd: get_file_listing
+args: []
+cmd: get_metadata
+args: ['archivo1.txt']
+DEBUG: Tamaño de 'testdata/archivo1.txt' = 25 bytes
+DEBUG: Enviando respuesta -> '0 OK\r\n25\r\n'
+cmd: quit
+args: []
+Client requested to quit.
+
+client:
+
+python3 client.py 127.0.0.1 -v DEBUG
+* Bienvenido al cliente HFTP - the Home-made File Transfer Protocol *
+* Estan disponibles los siguientes archivos:
+DEBUG:root:Enviando el (resto del) mensaje 'get_file_listing\r\n'.
+DEBUG:root:Received filename archivo2.txt
+DEBUG:root:Received filename archivo1.txt
+archivo2.txt
+archivo1.txt
+* Indique el nombre del archivo a descargar:
+archivo1.txt
+DEBUG:root:Enviando el (resto del) mensaje 'get_metadata archivo1.txt\r\n'.
+WARNING:root:No se pudo obtener el archivo archivo1.txt (code=200).
+DEBUG:root:Enviando el (resto del) mensaje 'quit\r\n'.
+WARNING:root:Respuesta inválida: '25'
+WARNING:root:Warning: quit no contesto ok, sino 'None'(None)'.
+
