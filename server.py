@@ -28,7 +28,8 @@ class Server():
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # 2. Configurar la dirección y puerto
         # ver esto
-        # self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Permite reusar el puerto
+        # Permite reusar el puerto
+        # self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
         self.s.bind((addr, port))
 
         # 3. Poner en modo de escucha (permitir conexiones entrantes)
