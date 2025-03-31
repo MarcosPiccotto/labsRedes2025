@@ -8,11 +8,12 @@
 
 import optparse
 import socket
-import connection
+from connection import Connection
 from constants import *
+import sys
 
 
-class Server(object):
+class Server():
     """
     El servidor, que crea y atiende el socket en la dirección y puerto
     especificados donde se reciben nuevas conexiones de clientes.
@@ -23,6 +24,18 @@ class Server(object):
         print("Serving %s on %s:%s." % (directory, addr, port))
         # FALTA: Crear socket del servidor, configurarlo, asignarlo
         # a una dirección y puerto, etc.
+        
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # 2. Configurar la dirección y puerto
+        # ver esto
+        # self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Permite reusar el puerto
+        self.s.bind((addr, port))
+
+        # 3. Poner en modo de escucha (permitir conexiones entrantes)
+        self.s.listen() 
+        print("Servidor esperando conexiones...")
+        
+        self.directory = directory 
 
     def serve(self):
         """
@@ -30,10 +43,11 @@ class Server(object):
         y se espera a que concluya antes de seguir.
         """
         while True:
-            pass
-            # FALTA: Aceptar una conexión al server, crear una
-            # Connection para la conexión y atenderla hasta que termine.
-
+            conn, addr = self.s.accept()
+            print(f"Connected by: {addr}")
+            
+            connection = Connection(conn, self.directory)
+            connection.handle()
 
 def main():
     """Parsea los argumentos y lanza el server"""
