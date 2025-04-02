@@ -150,8 +150,6 @@ class Connection:
             args = parts[1:]
 
             if cmd in self.command:
-                print(f"cmd: {cmd}")
-                print(f"args: {args}")
                 try:
                     error_code = self.command[cmd](args)  # Ejecuta el comando
 

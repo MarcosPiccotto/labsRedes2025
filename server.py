@@ -11,6 +11,7 @@ import socket
 from connection import Connection
 from constants import *
 import sys
+import threading
 
 
 class Server():
@@ -43,12 +44,16 @@ class Server():
         Loop principal del servidor. Se acepta una conexión a la vez
         y se espera a que concluya antes de seguir.
         """
-        while True:
-            conn, addr = self.s.accept()
-            print(f"Connected by: {addr}")
-            
-            connection = Connection(conn, self.directory)
-            connection.handle()
+        try:
+            while True:
+                conn, addr = self.s.accept()
+                print(f"Connected by: {addr}")
+                connection = Connection(conn, self.directory)
+                thread = threading.Thread(target=connection.handle, args=())
+                thread.start()
+                print(f"Conexiones activas: {threading.active_count() - 1}")
+        except:
+            pass
 
 def main():
     """Parsea los argumentos y lanza el server"""
