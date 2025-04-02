@@ -7,10 +7,9 @@ import socket
 from constants import *
 from base64 import b64encode
 import os
-import re
+import base64
 
 BUFFER_SIZE = 1024
-PATTERN = r"^(\w+)(?:\s[\w.-]+)*\r\n$"
 
 class Connection:
     """
@@ -22,80 +21,97 @@ class Connection:
     def __init__(self, socket, directory):
         self.socket = socket
         self.dir = directory
+        self.connected = True
+        self.buffer = ''
         self.command = {
             "get_file_listing": self.get_file_listing_handler,
             "get_metadata": self.get_metadata_handler,
             "get_slice": self.get_slice_handler,
             "quit": self.quit_handler
         }
-        self.connected = True
-        self.buffer = ''
-        # data que entra
-        # data que sale
-        self.send_buffer = b''
 
     def quit_handler(self, _):
-        print("Client requested to quit.")
         self.connected = False
-        self.socket.close()
-        return CODE_OK, "OK"
+        self.send(CODE_OK)
 
-    def get_file_listing_handler(self, args):
+    def get_file_listing_handler(self, _):
         list = os.listdir(self.dir)
-        self.buffer = "0 OK\r\n"
-        
+        body = ""
         for l in list:
             try:
                 l.encode("ascii")
-                self.buffer += f"{l}\r\n"
+                body += f"{l}{EOL}"
             except UnicodeEncodeError:
-                print(f"Nombre de archivo no ASCII omitido: {l}")
-        
-        try:
-            self.socket.sendall((self.buffer + EOL).encode("ascii"))
-        except Exception as e:
-            print(f"Error al enviar datos: {e}")
-        return CODE_OK, "OK"
+                return UnicodeEncodeError
+        self.send(CODE_OK)
     
-    def get_metadata_handler(self, args):
-    # Verificar número de argumentos
+    def get_size(self, filepath:str) -> str:
+        filepath = os.path.join(self.dir, filepath)
+        try:
+            size = os.path.getsize(filepath)
+            return size
+        except:
+            if not os.path.isfile(filepath):
+                return -1
+
+    def get_metadata_handler(self, args: list[str]):
         if len(args) != 1:
-            self.socket.sendall(f"{INVALID_ARGUMENTS} Invalid arguments\r\n".encode("ascii"))
+            return INVALID_ARGUMENTS
+        
+        size = self.get_size(args[0])
+        if size == -1:
+            return FILE_NOT_FOUND
+        
+        self.send(CODE_OK, str(size))
+    
+    def get_slice_handler(self, args: list[str]):
+        if len(args) != 3:
             return INVALID_ARGUMENTS
 
-        # Construir la ruta completa del archivo
-        filepath = os.path.join(self.dir, args[0])
-
-        # Verificar si el archivo existe
-        if not os.path.isfile(filepath):
-            self.socket.sendall(f"{FILE_NOT_FOUND} File not found\r\n".encode("ascii"))
-            return FILE_NOT_FOUND
+        filename, offset, size_cut = args
 
         try:
-            # Obtener tamaño del archivo
-            size = os.path.getsize(filepath)
+            offset = int(offset)
+            size_cut = int(size_cut)
+        except ValueError:
+            return INVALID_ARGUMENTS
 
-            # Debug: Mostrar en el servidor qué tamaño se está obteniendo
-            print(f"DEBUG: Tamaño de '{filepath}' = {size} bytes")
+        if offset < 0 or size_cut < 0:
+            return INVALID_ARGUMENTS
 
-            # Enviar la respuesta con el formato correcto
-            response = f"{CODE_OK} OK\r\n{str(size)}\r\n"
+        size = self.get_size(filename)
+        if size == -1:
+            return FILE_NOT_FOUND
 
-            # Debug: Mostrar qué se enviará
-            print(f"DEBUG: Enviando respuesta -> {repr(response)}")
+        if offset + size_cut > size:
+            return BAD_OFFSET
 
-            self.socket.sendall(response.encode("ascii"))
-
-            return CODE_OK, "OK"
-
-        except OSError as e:
-            print(f"Error al obtener metadatos: {e}")
-            self.socket.sendall(f"{INTERNAL_ERROR} Internal error\r\n".encode("ascii"))
-            return INTERNAL_ERROR
-
+        try:
+            filepath = os.path.join(self.dir, filename)
+            with open(filepath, "rb") as f:
+                f.seek(offset)
+                body = f.read(size_cut)
+                
+            body_base64 = base64.b64encode(body).decode("utf-8")
+            self.send(CODE_OK, body_base64)
+        except FileNotFoundError:
+            return FILE_NOT_FOUND
+        except OSError:
+            return OSError
     
-    
-    def get_slice_handler(self, args):
+    def send(self, error_code: int, body:str = ""):
+        """_summary_
+
+        Args:
+            error_code (_type_): index error message
+            body (_type_): msg body for client
+        
+        send(0,"") -> se envia "0 OK\r\n"
+        send(0,"1.txt\r\n2.txt\r\n") -> "0 OK\n\r1.txt\r\n2.txt\r\n\r\n"
+        """
+        prefix = f"{error_code} {error_messages[error_code]}{EOL}"
+        res = f"{prefix}{body}{EOL}"
+        self.socket.sendall(res.encode('ascii'))
         pass
 
     def _read_line(self):
@@ -115,7 +131,7 @@ class Connection:
             line, self.buffer = self.buffer.split(EOL, 1)
             return line.strip()
         return ""
-
+    
     def handle(self):
         """
         Atiende eventos de la conexión hasta que termina.
@@ -123,12 +139,9 @@ class Connection:
         while self.connected:
             command = self._read_line()
 
-            # revisar
             if not command:
-                self.socket.send(f"{BAD_REQUEST} invalid request format\n".encode("ascii"))
                 continue
-                # me parece que es un break
-            
+
             parts = command.split()
             if not parts:
                 continue
@@ -139,7 +152,21 @@ class Connection:
             if cmd in self.command:
                 print(f"cmd: {cmd}")
                 print(f"args: {args}")
-                self.command[cmd](args)
+                try:
+                    error_code = self.command[cmd](args)  # Ejecuta el comando
+
+                    if valid_status(error_code):
+                        self.send(error_code)
+
+                        # Si el error es fatal, cerramos la conexión
+                        if fatal_status(error_code):
+                            self.connected = False
+
+                except (OSError,Exception) as e:
+                    print(f"Unexpected OS error: {e}")
+                    self.send(INTERNAL_ERROR)
+                    self.connected = False
             else:
-                self.socket.send(f"{INVALID_COMMAND} unknown command\n".encode("ascii"))
-                continue
+                self.send(INVALID_COMMAND)
+
+        self.socket.close()
