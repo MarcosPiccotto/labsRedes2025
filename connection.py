@@ -43,7 +43,7 @@ class Connection:
                 body += f"{l}{EOL}"
             except UnicodeEncodeError:
                 return UnicodeEncodeError
-        self.send(CODE_OK)
+        self.send(CODE_OK, body)
     
     def get_size(self, filepath:str) -> str:
         filepath = os.path.join(self.dir, filepath)
