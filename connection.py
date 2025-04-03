@@ -30,7 +30,9 @@ class Connection:
             "quit": self.quit_handler
         }
 
-    def quit_handler(self, _):
+    def quit_handler(self, args: list[str]):
+        if len(args) != 0:
+            return INVALID_ARGUMENTS
         self.connected = False
         self.send(CODE_OK)
 
@@ -121,7 +123,7 @@ class Connection:
                 data = self.socket.recv(BUFFER_SIZE).decode("ascii")
                 if not data:
                     self.connected = False
-                    return ""
+                    break
                 self.buffer += data
             except (socket.error, UnicodeDecodeError):
                 self.connected = False
@@ -129,7 +131,15 @@ class Connection:
         
         if EOL in self.buffer:
             line, self.buffer = self.buffer.split(EOL, 1)
-            return line.strip()
+            # Verificar si contiene caracteres no válidos antes de hacer strip()
+            if '\n' in line or '\r' in line:
+                self.send(BAD_EOL)
+                self.connected = False
+                return ""
+
+            # Limpiar la línea después de verificar
+            line = line.strip()
+            return line
         return ""
     
     def handle(self):

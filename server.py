@@ -27,6 +27,7 @@ class Server():
         # a una dirección y puerto, etc.
         
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # 2. Configurar la dirección y puerto
         # ver esto
         # Permite reusar el puerto
@@ -44,16 +45,14 @@ class Server():
         Loop principal del servidor. Se acepta una conexión a la vez
         y se espera a que concluya antes de seguir.
         """
-        try:
-            while True:
-                conn, addr = self.s.accept()
-                print(f"Connected by: {addr}")
-                connection = Connection(conn, self.directory)
-                thread = threading.Thread(target=connection.handle, args=())
-                thread.start()
-                print(f"Conexiones activas: {threading.active_count() - 1}")
-        except:
-            pass
+        while True:
+            conn, addr = self.s.accept()
+            print(f"Connected by: {addr}")
+            connection = Connection(conn, self.directory)
+            thread = threading.Thread(target=connection.handle, args=())
+            thread.start()
+            print(f"Conexiones activas: {threading.active_count() - 1}")
+
 
 def main():
     """Parsea los argumentos y lanza el server"""
