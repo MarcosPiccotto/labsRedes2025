@@ -50,3 +50,62 @@ Todas las variantes famosas que se conocen con el nombre de Base64 usan el rango
 sudo fuser -k 19500/tcp
 
 kill -9 $(lsof -ti :19500) ; python3 server.py -p 19500
+
+poll es una llamada al sistema que te permite esperar por eventos en múltiples descriptores de archivo (como sockets). Esto es útil para manejar varios clientes a la vez sin tener que usar múltiples threads o procesos.
+
+Imaginá que tenés un servidor TCP que acepta conexiones de muchos clientes. Si usás accept() y luego recv() de forma secuencial para cada cliente, el servidor se va a quedar esperando por cada uno, uno por uno. Eso es ineficiente.
+
+¿Cómo funciona?
+
+-   Registrás todos los sockets (clientes conectados) en una estructura que maneja poll (como un poller en Python).
+
+-   Llamás a poll() para que el sistema operativo te diga cuál de ellos tiene algo para hacer (por ejemplo, datos para leer).
+
+-   Respondés solo a esos sockets, sin bloquearte con los demás.
+
+¿Por qué los hilos son más costosos?
+1. Overhead del sistema operativo
+
+    Cada hilo necesita recursos: pila (stack), estructuras internas del SO, registros, etc.
+
+    Si tenés cientos o miles de clientes, vas a tener cientos o miles de hilos, y eso consume mucha memoria y tiempo de CPU para cambiar entre hilos (context switching).
+
+2. Cambio de contexto (context switch)
+
+    Cuando el sistema operativo cambia de un hilo a otro, guarda y restaura registros, pila, etc.
+
+    Si hay muchos hilos, pasa más tiempo cambiando entre hilos que haciendo trabajo útil.
+
+Si estás haciendo un servidor tipo FTP o HTTP donde cada cliente hace peticiones puntuales, poll es ideal. Si estuvieras haciendo algo como un simulador físico donde cada cliente tiene una simulación intensiva, ahí podrían convenir los hilos.
+
+implementacion pequeña explicacion:
+
+esperar eventos en múltiples descriptores de archivo
+self.poller = select.poll()
+avisame cuando haya datos por leer "pollin"
+self.poller.register(self.s, select.POLLIN)
+
+Cuando hacés poller.register(socket, POLLIN), internamente poll() está monitoreando el descriptor de archivo
+
+por lo tanto la forma de plantear va a ser(en simples palabras)
+1) che tengo registrado este fd
+    si -> verifico que tarea esta haciendo salida o entrada(pollin,pollout)
+    no -> creo una nueva conexion y lo agrego a mi arreglo o lo que sea de bolsa de fd para luego ver si ya lo estoy usando
+2) atender la tarea y dejarlo "dormir de nuevo", ya que solo laburamos con lo socket o fd que realmente piden hacer algo
+3) cuando vamos cerrando sockets o clientes vamos liberando esos fd para que el SO sepa que puede asignar otra vez para otro socket. Como cada fd es unico tengo una forma de identificar a cada conexion en cada momento
+
+poller.poll() te devuelve una lista tupla de eventos
+ej: [(fd1, evento1), (fd2, evento2), ...]
+cada evento es una mascara de bits la cual indica que hace
+
+el & es el and pero de bit a bit, ya que comparamos los bits de event con los bits de cierto evento que nosotros queres identificar ej: event & select.POLLIN
+
+
+Otros posibles flags:
+    select.POLLINS listo para leer
+
+    select.POLLOUT: listo para escribir
+
+    select.POLLERR: ocurrió un error
+
+    select.POLLHUP: el cliente cerró la conexión
