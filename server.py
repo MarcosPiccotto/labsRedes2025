@@ -14,14 +14,14 @@ import sys
 import select
 
 
-class Server():
+class Server:
     """
     El servidor, que crea y atiende el socket en la dirección y puerto
     especificados donde se reciben nuevas conexiones de clientes.
     """
 
     def __init__(self, addr=DEFAULT_ADDR, port=DEFAULT_PORT, directory=DEFAULT_DIR):
-        self.dir = directory 
+        self.dir = directory
         self.port = port
         self.addr = addr
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -29,31 +29,30 @@ class Server():
         print("Serving %s on %s:%s." % (directory, addr, port))
         self.connections = {}
 
-
     def serve(self):
         """
         Loop principal del servidor. Se acepta una conexión a la vez
         y se espera a que concluya antes de seguir.
         """
         self.s.bind((self.addr, self.port))
-        self.s.listen() 
-        
+        self.s.listen()
+
         self.poller = select.poll()
         self.poller.register(self.s, select.POLLIN)
-        
+
         try:
             while True:
                 events = self.poller.poll()  # guardo todos eventos de los sockets
                 for sock_fd, event in events:
                     if not (event & (select.POLLIN | select.POLLOUT)):
                         continue
-                    
-                    if event & select.POLLOUT: # el socket está listo para escribir
+
+                    if event & select.POLLOUT:  # el socket está listo para escribir
                         self.pollout_handle(sock_fd)
-                    elif event & select.POLLIN: # el socket está listo para leer
-                        if sock_fd == self.s.fileno(): # el socket es el servidor
+                    elif event & select.POLLIN:  # el socket está listo para leer
+                        if sock_fd == self.s.fileno():  # el socket es el servidor
                             self.new_connection_handle()
-                        else: # el socket es un cliente
+                        else:  # el socket es un cliente
                             self.pollin_handle(sock_fd)
         except socket.error as e:
             print(f"Error en el socket: {e}")
@@ -64,9 +63,13 @@ class Server():
         try:
             new_client_socket, _ = self.s.accept()
             new_client_socket.setblocking(False)  # No bloquea cuando uso recv
-            
-            self.poller.register(new_client_socket, select.POLLIN) # agrego el nuevo socket a la lista de sockets a monitorear
-            self.connections[new_client_socket.fileno()] = Connection(new_client_socket, self.dir)
+
+            self.poller.register(
+                new_client_socket, select.POLLIN
+            )  # agrego el nuevo socket a la lista de sockets a monitorear
+            self.connections[new_client_socket.fileno()] = Connection(
+                new_client_socket, self.dir
+            )
         except socket.error as e:
             print(f"Error al aceptar nueva conexión: {e}")
 
@@ -78,29 +81,30 @@ class Server():
 
     def pollin_handle(self, sock_fd):
         client = self.connections.get(sock_fd)
-        
+
         if not client.handle():
             # Si el cliente cerró la conexión, lo eliminamos del monitoreo
             self.poller.unregister(sock_fd)
             del self.connections[sock_fd]
-        elif client.can_pollout(): # Si el cliente tiene datos para enviar
+        elif client.can_pollout():  # Si el cliente tiene datos para enviar
             self.poller.modify(sock_fd, select.POLLIN | select.POLLOUT)
-        else: # Si no tiene datos para enviar
+        else:  # Si no tiene datos para enviar
             self.poller.modify(sock_fd, select.POLLIN)
+
 
 def main():
     """Parsea los argumentos y lanza el server"""
 
     parser = optparse.OptionParser()
     parser.add_option(
-        "-p", "--port",
-        help="Número de puerto TCP donde escuchar", default=DEFAULT_PORT)
+        "-p", "--port", help="Número de puerto TCP donde escuchar", default=DEFAULT_PORT
+    )
     parser.add_option(
-        "-a", "--address",
-        help="Dirección donde escuchar", default=DEFAULT_ADDR)
+        "-a", "--address", help="Dirección donde escuchar", default=DEFAULT_ADDR
+    )
     parser.add_option(
-        "-d", "--datadir",
-        help="Directorio compartido", default=DEFAULT_DIR)
+        "-d", "--datadir", help="Directorio compartido", default=DEFAULT_DIR
+    )
 
     options, args = parser.parse_args()
     if len(args) > 0:
@@ -109,8 +113,7 @@ def main():
     try:
         port = int(options.port)
     except ValueError:
-        sys.stderr.write(
-            "Numero de puerto invalido: %s\n" % repr(options.port))
+        sys.stderr.write("Numero de puerto invalido: %s\n" % repr(options.port))
         parser.print_help()
         sys.exit(1)
 
@@ -118,5 +121,5 @@ def main():
     server.serve()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

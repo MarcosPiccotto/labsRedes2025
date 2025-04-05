@@ -11,6 +11,7 @@ import base64
 
 BUFFER_SIZE = 1024
 
+
 class Connection:
     """
     Conexión punto a punto entre el servidor y un cliente.
@@ -22,13 +23,13 @@ class Connection:
         self.socket = socket
         self.dir = directory
         self.connected = True
-        self.buffer = ''
-        self.output_buffer = b''  # Buffer para datos pendientes de envío
+        self.buffer = ""
+        self.output_buffer = b""  # Buffer para datos pendientes de envío
         self.command = {
             "get_file_listing": self.get_file_listing_handler,
             "get_metadata": self.get_metadata_handler,
             "get_slice": self.get_slice_handler,
-            "quit": self.quit_handler
+            "quit": self.quit_handler,
         }
 
     def quit_handler(self, args: list[str]):
@@ -47,7 +48,7 @@ class Connection:
             except UnicodeEncodeError:
                 return UnicodeEncodeError
         self.load_buffer(CODE_OK, body)
-    
+
     def get_size(self, filepath: str) -> str:
         filepath = os.path.join(self.dir, filepath)
         try:
@@ -60,13 +61,13 @@ class Connection:
     def get_metadata_handler(self, args: list[str]):
         if len(args) != 1:
             return INVALID_ARGUMENTS
-        
+
         size = self.get_size(args[0])
         if size == -1:
             return FILE_NOT_FOUND
-        
+
         self.load_buffer(CODE_OK, str(size))
-    
+
     def get_slice_handler(self, args: list[str]):
         if len(args) != 3:
             return INVALID_ARGUMENTS
@@ -94,14 +95,14 @@ class Connection:
             with open(filepath, "rb") as f:
                 f.seek(offset)
                 body = f.read(size_cut)
-                
+
             body_base64 = base64.b64encode(body).decode("utf-8")
             self.load_buffer(CODE_OK, body_base64)
         except FileNotFoundError:
             return FILE_NOT_FOUND
         except OSError:
             return OSError
-    
+
     def load_buffer(self, error_code: int, body: str = ""):
         """
         Prepara los datos para enviar y los almacena en el buffer de salida.
@@ -112,7 +113,9 @@ class Connection:
         """
         prefix = f"{error_code} {error_messages[error_code]}{EOL}"
         res = f"{prefix}{body}{EOL}"
-        self.output_buffer += res.encode('ascii')  # Agrega los datos al buffer de salida
+        self.output_buffer += res.encode(
+            "ascii"
+        )  # Agrega los datos al buffer de salida
         self.send()
 
     def send(self):
@@ -122,7 +125,9 @@ class Connection:
         while self.output_buffer:
             try:
                 sent = self.socket.send(self.output_buffer)  # Envía los datos
-                self.output_buffer = self.output_buffer[sent:]  # Elimina los datos enviados
+                self.output_buffer = self.output_buffer[
+                    sent:
+                ]  # Elimina los datos enviados
             except socket.error as e:
                 if e.errno in (socket.errno.EAGAIN, socket.errno.EWOULDBLOCK):
                     # Si el socket no está listo para enviar, espera y reintenta
@@ -150,12 +155,12 @@ class Connection:
                 print(f"Error al leer datos: {e}")
                 self.connected = False
                 return ""
-        
+
         if EOL in self.buffer:
             line, self.buffer = self.buffer.split(EOL, 1)
-            
+
             # Verificar si contiene caracteres no válidos
-            if '\n' in line or '\r' in line:
+            if "\n" in line or "\r" in line:
                 self.load_buffer(BAD_EOL)
                 self.connected = False
                 return ""
@@ -164,7 +169,7 @@ class Connection:
             line = line.strip()
             return line
         return ""
-    
+
     def handle(self):
         """
         Atiende eventos de la conexión hasta que termina.
@@ -176,7 +181,7 @@ class Connection:
                 continue
 
             parts = command.split()
-            if not parts:  
+            if not parts:
                 continue
 
             cmd = parts[0].lower()
@@ -200,10 +205,10 @@ class Connection:
                 self.load_buffer(INVALID_COMMAND)
 
             self.send()
-        
+
         self.socket.close()
         return False
-    
+
     def can_pollout(self):
         """
         Indica si el cliente necesita enviar datos.

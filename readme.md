@@ -4,7 +4,7 @@ El protocolo
 HFTP es un protocolo ASCII, no binario, por lo que todo lo enviado (incluso archivos binarios) 
 será legible por humanos como strings.
 
-## estructura
+## Estructura
 
 - Comandos: consisten en una cadena de caracteres compuesta por elementos 
 separados por un único espacio y terminadas con un fin de línea estilo DOS (\r\n)1. El 
@@ -20,7 +20,7 @@ Base64 es un sistema de numeración posicional que usa 64 como base. Es la mayor
 
 Todas las variantes famosas que se conocen con el nombre de Base64 usan el rango de caracteres A-Z, a-z y 0-9 
 
-## ventajas:
+## Ventajas:
 - SMTP (Simple Mail Transfer Protocol), el protocolo usado para enviar correos electrónicos, fue diseñado para manejar solo texto ASCII de 7 bits.
 - Muchos clientes de correo más antiguos no soportaban caracteres extendidos o datos binarios directamente. 
 - Base64 evita estos problemas al representar todo en caracteres estándar (A-Z, a-z, 0-9, +, / y =).
@@ -102,6 +102,7 @@ el & es el and pero de bit a bit, ya que comparamos los bits de event con los bi
 
 
 Otros posibles flags:
+
     select.POLLINS listo para leer
 
     select.POLLOUT: listo para escribir
