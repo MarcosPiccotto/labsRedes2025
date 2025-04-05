@@ -24,11 +24,11 @@ class Server():
         self.dir = directory 
         self.port = port
         self.addr = addr
-        self.poller = None
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         print("Serving %s on %s:%s." % (directory, addr, port))
-        clients = {}
+        self.connections = {}
+
 
     def serve(self):
         """
@@ -36,34 +36,57 @@ class Server():
         y se espera a que concluya antes de seguir.
         """
         self.s.bind((self.addr, self.port))
-        self.s.listen()
-        print("Servidor esperando conexiones...")
+        self.s.listen() 
         
-        # esperar eventos en múltiples descriptores de archivo
         self.poller = select.poll()
-        # avisame cuando haya datos por leer "pollin"
         self.poller.register(self.s, select.POLLIN)
-        # 
         
-        # el acep
-        # conn, addr = self.s.accept()
-        #   
+        try:
+            while True:
+                events = self.poller.poll()  # guardo todos eventos de los sockets
+                for sock_fd, event in events:
+                    if not (event & (select.POLLIN | select.POLLOUT)):
+                        continue
+                    
+                    if event & select.POLLOUT: # el socket está listo para escribir
+                        self.pollout_handle(sock_fd)
+                    elif event & select.POLLIN: # el socket está listo para leer
+                        if sock_fd == self.s.fileno(): # el socket es el servidor
+                            self.new_connection_handle()
+                        else: # el socket es un cliente
+                            self.pollin_handle(sock_fd)
+        except socket.error as e:
+            print(f"Error en el socket: {e}")
+        except Exception as e:
+            print(f"Error inesperado: {e}")
+
+    def new_connection_handle(self):
+        try:
+            new_client_socket, _ = self.s.accept()
+            new_client_socket.setblocking(False)  # No bloquea cuando uso recv
+            
+            self.poller.register(new_client_socket, select.POLLIN) # agrego el nuevo socket a la lista de sockets a monitorear
+            self.connections[new_client_socket.fileno()] = Connection(new_client_socket, self.dir)
+        except socket.error as e:
+            print(f"Error al aceptar nueva conexión: {e}")
+
+    def pollout_handle(self, sock_fd):
+        client = self.connections[sock_fd]
+        client.send()
+        if not client.can_pollout():
+            self.poller.modify(sock_fd, select.POLLIN)
+
+    def pollin_handle(self, sock_fd):
+        client = self.connections.get(sock_fd)
         
-        while True:
-            events = self.poller.poll() # espera eventos
-            for sock_fd, event in events:
-                if event & select.POLLOUT:
-                    # ya lo tengo guardado y quiere escribir
-                    pass
-                elif event & select.POLLIN:
-                    if sock_fd == self.s.fileno(): 
-                        new_client_socket, addr = self.s.accept()
-                        new_client_socket.setblocking(False) # no bloquea cuando uso recv
-                        self.poller.register(new_client_socket, select.POLLIN)
-                        self.clients[new_client_socket.fileno()] = Connection(new_client_socket, self.dir)
-                    else:
-                        # ya tengo guardado y quiere leer
-                        pass    
+        if not client.handle():
+            # Si el cliente cerró la conexión, lo eliminamos del monitoreo
+            self.poller.unregister(sock_fd)
+            del self.connections[sock_fd]
+        elif client.can_pollout(): # Si el cliente tiene datos para enviar
+            self.poller.modify(sock_fd, select.POLLIN | select.POLLOUT)
+        else: # Si no tiene datos para enviar
+            self.poller.modify(sock_fd, select.POLLIN)
 
 def main():
     """Parsea los argumentos y lanza el server"""

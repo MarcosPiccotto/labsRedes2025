@@ -23,6 +23,7 @@ class Connection:
         self.dir = directory
         self.connected = True
         self.buffer = ''
+        self.output_buffer = b''  # Buffer para datos pendientes de envío
         self.command = {
             "get_file_listing": self.get_file_listing_handler,
             "get_metadata": self.get_metadata_handler,
@@ -34,7 +35,7 @@ class Connection:
         if len(args) != 0:
             return INVALID_ARGUMENTS
         self.connected = False
-        self.send(CODE_OK)
+        self.load_buffer(CODE_OK)
 
     def get_file_listing_handler(self, _):
         list = os.listdir(self.dir)
@@ -45,9 +46,9 @@ class Connection:
                 body += f"{l}{EOL}"
             except UnicodeEncodeError:
                 return UnicodeEncodeError
-        self.send(CODE_OK, body)
+        self.load_buffer(CODE_OK, body)
     
-    def get_size(self, filepath:str) -> str:
+    def get_size(self, filepath: str) -> str:
         filepath = os.path.join(self.dir, filepath)
         try:
             size = os.path.getsize(filepath)
@@ -64,7 +65,7 @@ class Connection:
         if size == -1:
             return FILE_NOT_FOUND
         
-        self.send(CODE_OK, str(size))
+        self.load_buffer(CODE_OK, str(size))
     
     def get_slice_handler(self, args: list[str]):
         if len(args) != 3:
@@ -95,26 +96,42 @@ class Connection:
                 body = f.read(size_cut)
                 
             body_base64 = base64.b64encode(body).decode("utf-8")
-            self.send(CODE_OK, body_base64)
+            self.load_buffer(CODE_OK, body_base64)
         except FileNotFoundError:
             return FILE_NOT_FOUND
         except OSError:
             return OSError
     
-    def send(self, error_code: int, body:str = ""):
-        """_summary_
+    def load_buffer(self, error_code: int, body: str = ""):
+        """
+        Prepara los datos para enviar y los almacena en el buffer de salida.
 
         Args:
-            error_code (_type_): index error message
-            body (_type_): msg body for client
-        
-        send(0,"") -> se envia "0 OK\r\n"
-        send(0,"1.txt\r\n2.txt\r\n") -> "0 OK\n\r1.txt\r\n2.txt\r\n\r\n"
+            error_code (int): Código de error.
+            body (str): Mensaje para el cliente.
         """
         prefix = f"{error_code} {error_messages[error_code]}{EOL}"
         res = f"{prefix}{body}{EOL}"
-        self.socket.sendall(res.encode('ascii'))
-        pass
+        self.output_buffer += res.encode('ascii')  # Agrega los datos al buffer de salida
+        self.send()
+
+    def send(self):
+        """
+        Intenta enviar los datos pendientes en el buffer de salida.
+        """
+        while self.output_buffer:
+            try:
+                sent = self.socket.send(self.output_buffer)  # Envía los datos
+                self.output_buffer = self.output_buffer[sent:]  # Elimina los datos enviados
+            except socket.error as e:
+                if e.errno in (socket.errno.EAGAIN, socket.errno.EWOULDBLOCK):
+                    # Si el socket no está listo para enviar, espera y reintenta
+                    break
+                else:
+                    # Otro error, cerrar la conexión
+                    print(f"Error al enviar datos: {e}")
+                    self.connected = False
+                    break
 
     def _read_line(self):
         """Lee una línea del cliente."""
@@ -122,18 +139,24 @@ class Connection:
             try:
                 data = self.socket.recv(BUFFER_SIZE).decode("ascii")
                 if not data:
+                    print("Cliente cerró la conexión o no envió datos.")
                     self.connected = False
                     break
                 self.buffer += data
-            except (socket.error, UnicodeDecodeError):
+            except BlockingIOError:
+                # No hay datos disponibles en el socket, continúa esperando
+                break
+            except (socket.error, UnicodeDecodeError) as e:
+                print(f"Error al leer datos: {e}")
                 self.connected = False
                 return ""
         
         if EOL in self.buffer:
             line, self.buffer = self.buffer.split(EOL, 1)
-            # Verificar si contiene caracteres no válidos antes de hacer strip()
+            
+            # Verificar si contiene caracteres no válidos
             if '\n' in line or '\r' in line:
-                self.send(BAD_EOL)
+                self.load_buffer(BAD_EOL)
                 self.connected = False
                 return ""
 
@@ -153,7 +176,7 @@ class Connection:
                 continue
 
             parts = command.split()
-            if not parts:
+            if not parts:  
                 continue
 
             cmd = parts[0].lower()
@@ -161,20 +184,28 @@ class Connection:
 
             if cmd in self.command:
                 try:
-                    error_code = self.command[cmd](args)  # Ejecuta el comando
+                    error_code = self.command[cmd](args)
 
                     if valid_status(error_code):
-                        self.send(error_code)
+                        self.load_buffer(error_code)
 
-                        # Si el error es fatal, cerramos la conexión
                         if fatal_status(error_code):
                             self.connected = False
 
-                except (OSError,Exception) as e:
-                    print(f"Unexpected OS error: {e}")
-                    self.send(INTERNAL_ERROR)
+                except (OSError, Exception) as e:
+                    print(f"Unexpected OS error: {e}, command: {command}")
+                    self.load_buffer(INTERNAL_ERROR)
                     self.connected = False
             else:
-                self.send(INVALID_COMMAND)
+                self.load_buffer(INVALID_COMMAND)
 
+            self.send()
+        
         self.socket.close()
+        return False
+    
+    def can_pollout(self):
+        """
+        Indica si el cliente necesita enviar datos.
+        """
+        return len(self.output_buffer) > 0
