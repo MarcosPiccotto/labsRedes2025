@@ -6,13 +6,13 @@
 # Copyright 2008-2010 Natalia Bidart y Daniel Moisset
 # $Id: server.py 656 2013-03-18 23:49:11Z bc $
 
-import optparse
-import socket
 from connection import Connection
 from constants import *
-import sys
+import optparse
+import os
 import select
-
+import socket
+import sys
 
 class Server:
     """
@@ -28,6 +28,9 @@ class Server:
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         print("Serving %s on %s:%s." % (directory, addr, port))
         self.connections = {}
+        
+        if not os.path.exists(self.dir):
+            os.makedirs(self.dir) 
 
     def serve(self):
         """

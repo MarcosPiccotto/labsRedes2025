@@ -3,14 +3,12 @@
 # Copyright 2014 Carlos Bederián
 # $Id: connection.py 455 2011-05-01 00:32:09Z carlos $
 
-import socket
-from constants import *
 from base64 import b64encode
+from constants import *
 import os
-import base64
+import socket
 
 BUFFER_SIZE = 1024
-
 
 class Connection:
     """
@@ -20,6 +18,9 @@ class Connection:
     """
 
     def __init__(self, socket, directory):
+        """
+        Inicializa la conexión con el socket y el directorio proporcionados.
+        """
         self.socket = socket
         self.dir = directory
         self.connected = True
@@ -33,12 +34,27 @@ class Connection:
         }
 
     def quit_handler(self, args: list[str]):
+        """
+        Maneja el comando 'quit' para cerrar la conexión.
+
+        Args:
+            args: Lista de argumentos que debe estar vacia para este comando.
+
+        Return:
+            INVALID_ARGUMENTS si se proporciona algún argumento.
+        """
         if len(args) != 0:
             return INVALID_ARGUMENTS
         self.connected = False
         self.load_buffer(CODE_OK)
 
     def get_file_listing_handler(self, _):
+        """
+        Maneja el comando 'get_file_listing' para listar los archivos del directorio.
+
+        Return:
+            UnicodeEncodeError si algun nombre de archivo no tiene formato ASCII.
+        """
         list = os.listdir(self.dir)
         body = ""
         for l in list:
@@ -49,7 +65,16 @@ class Connection:
                 return UnicodeEncodeError
         self.load_buffer(CODE_OK, body)
 
-    def get_size(self, filepath: str) -> str:
+    def get_size(self, filepath: str) -> int:
+        """
+        Obtiene el tamaño de un archivo en Bytes.
+
+        Args:
+            filepath: Ruta relativa del archivo
+
+        Return:
+            El tamaño en Bytes del archivo o -1 si no existe.
+        """
         filepath = os.path.join(self.dir, filepath)
         try:
             size = os.path.getsize(filepath)
@@ -59,6 +84,16 @@ class Connection:
                 return -1
 
     def get_metadata_handler(self, args: list[str]):
+        """
+        Maneja el comando 'get_metadata' para obtener el tamaño de un archivo.
+
+        Args:
+            args: Lista de argumentos que debe contener solo el nombre del archivo.
+
+        Return:
+            INVALID_ARGUMENTS si hay mas de un argumento.
+            FILE_NOT_FOUND si el archivo no existe.
+        """
         if len(args) != 1:
             return INVALID_ARGUMENTS
 
@@ -69,6 +104,18 @@ class Connection:
         self.load_buffer(CODE_OK, str(size))
 
     def get_slice_handler(self, args: list[str]):
+        """
+        Maneja el comando 'get_slice' para obtener una porción de un archivo.
+
+        Args:
+            args: Lista de argumentos (nombre_archivo, offset, tamaño)
+
+        Return:
+            INVALID_ARGUMENTS si los argumentos son inválidos
+            FILE_NOT_FOUND si el archivo no existe
+            BAD_OFFSET si el offset + tamaño excede el tamaño del archivo
+            OSError si ocurre un error al leer el archivo
+        """
         if len(args) != 3:
             return INVALID_ARGUMENTS
 
@@ -96,7 +143,7 @@ class Connection:
                 f.seek(offset)
                 body = f.read(size_cut)
 
-            body_base64 = base64.b64encode(body).decode("utf-8")
+            body_base64 = b64encode(body).decode("utf-8")
             self.load_buffer(CODE_OK, body_base64)
         except FileNotFoundError:
             return FILE_NOT_FOUND
