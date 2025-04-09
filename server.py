@@ -31,6 +31,12 @@ class Server:
         
         if not os.path.exists(self.dir):
             os.makedirs(self.dir) 
+            a1_path = os.path.join(self.dir, "archivo1.txt")
+            a2_path = os.path.join(self.dir, "archivo2.txt")
+            with open(a1_path, "w") as f1:
+                f1.write("Este es el archivo 1")
+            with open(a2_path, "w") as f2:
+                f2.write("Este es el archivo 2")
 
     def serve(self):
         """
