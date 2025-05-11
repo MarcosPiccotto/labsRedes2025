@@ -13,7 +13,9 @@ private:
     cQueue buffer;
     cMessage *endServiceEvent;
     simtime_t serviceTime;
-
+    cOutVector packetDropVector;
+    cOutVector bufferSizeVector;
+    int packetDropped;
 public:
     TransportRx();
     virtual ~TransportRx();
@@ -42,6 +44,9 @@ void TransportRx::initialize()
 {
     buffer.setName("buffer");
     endServiceEvent = new cMessage("endService");
+    packetDropVector.setName("packet dropped");
+    bufferSizeVector.setName("buffer size");
+    packetDropped = 0;
 }
 
 void TransportRx::finish()
@@ -57,8 +62,6 @@ void TransportRx::sendFeedback()
     feedbackPkt->setCurrentBufferSize(buffer.getLength());
     feedbackPkt->setBufferSize(par("bufferSize").intValue());
     send(feedbackPkt, "toApp");
-//    feedbackPkt->setFeedbackStatus(status);
-//    lastFeedbackSent = status;
 }
 
 void TransportRx::handleMessage(cMessage *msg)
@@ -81,10 +84,12 @@ void TransportRx::handleMessage(cMessage *msg)
         {
             delete msg;
             this->bubble("packet dropped");
+            packetDropVector.record(++packetDropped);
         }
         else
         {
             buffer.insert(msg);
+            bufferSizeVector.record(buffer.getLength());
             if (!endServiceEvent->isScheduled())
             {
                 scheduleAt(simTime(), endServiceEvent);

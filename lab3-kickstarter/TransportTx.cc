@@ -13,6 +13,7 @@ private:
     cMessage *endServiceEvent;
     simtime_t serviceTime;
     float delay;
+    cOutVector bufferSizeVector;
 
 public:
     TransportTx();
@@ -39,7 +40,9 @@ TransportTx::~TransportTx() {
 void TransportTx::initialize() {
     buffer.setName("buffer");
     endServiceEvent = new cMessage("endService");
+    bufferSizeVector.setName("buffer size");
     delay = 0;
+    serviceTime = 0.1;
 }
 
 void TransportTx::finish() {
@@ -51,11 +54,13 @@ void TransportTx::handleMessage(cMessage* msg) {
             cPacket* pkt = dynamic_cast<cPacket*>(buffer.pop());
             send(pkt, "toOut$o");
 
-            serviceTime = pkt->getDuration();
-//            EV << delay << "hola";
-//            EV << serviceTime;
-            serviceTime += (serviceTime) * delay;
+            serviceTime += serviceTime * delay;
+
+            if (serviceTime < pkt->getDuration()) {
+                serviceTime = pkt->getDuration();
+            }
             scheduleAt(simTime() + serviceTime, endServiceEvent);
+
         }
     }
     else if (msg->getKind() == 0) {
@@ -70,6 +75,7 @@ void TransportTx::handleMessage(cMessage* msg) {
             this->bubble("packet dropped");
         } else {
             buffer.insert(pkt);
+            bufferSizeVector.record(buffer.getLength());
 
             if (!endServiceEvent->isScheduled()) {
                 scheduleAt(simTime(), endServiceEvent);
@@ -87,17 +93,20 @@ void TransportTx::handleFeedback(FeedbackPkt* msg) {
     int currentBufferSize = msg->getCurrentBufferSize();
 
     double ratio = (double)(bufferSize - currentBufferSize) / bufferSize;
-    if(ratio < 0.25){
-        delay = 0.5;
+
+    if (ratio <= 0.25){
+        delay = 0.1;
     }
-//    else if (ratio > 0.75){
-//        delay = -0.5;
-//    }
+    else if (ratio > 0.5){
+        delay = -0.2;
+    }
     else{
         delay = 0;
     }
+
     delete msg;
 }
+
 
 
 #endif /* TRANSPORT_TX */
