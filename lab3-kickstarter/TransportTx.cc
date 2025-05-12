@@ -4,6 +4,8 @@
 #include <string.h>
 #include <omnetpp.h>
 #include "FeedbackPkt_m.h"
+#include "DataPkt_m.h"
+#include <vector>
 
 using namespace omnetpp;
 
@@ -12,8 +14,10 @@ private:
     cQueue buffer;
     cMessage *endServiceEvent;
     simtime_t serviceTime;
-    float delay;
     cOutVector bufferSizeVector;
+    float delay;
+    simtime_t timeStampMean;
+    uint countTimeStamp;
 
 public:
     TransportTx();
@@ -43,6 +47,9 @@ void TransportTx::initialize() {
     bufferSizeVector.setName("buffer size");
     delay = 0;
     serviceTime = 0.1;
+    timeStampMean = 0;
+    countTimeStamp = 0;
+
 }
 
 void TransportTx::finish() {
@@ -51,7 +58,10 @@ void TransportTx::finish() {
 void TransportTx::handleMessage(cMessage* msg) {
     if (msg == endServiceEvent) {
         if (!buffer.isEmpty()) {
-            cPacket* pkt = dynamic_cast<cPacket*>(buffer.pop());
+
+            DataPkt* pkt = dynamic_cast<DataPkt*>(buffer.pop());
+            pkt->setTimeStampTx(simTime());
+
             send(pkt, "toOut$o");
 
             serviceTime += serviceTime * delay;
@@ -59,12 +69,14 @@ void TransportTx::handleMessage(cMessage* msg) {
             if (serviceTime < pkt->getDuration()) {
                 serviceTime = pkt->getDuration();
             }
+
+            EV << "serviceTime: " << serviceTime << "\n";
             scheduleAt(simTime() + serviceTime, endServiceEvent);
 
         }
     }
     else if (msg->getKind() == 0) {
-        cPacket* pkt = dynamic_cast<cPacket*>(msg);
+        DataPkt* pkt = dynamic_cast<DataPkt*>(msg);
         if (pkt == nullptr) {
             delete msg;
             return;
@@ -91,19 +103,37 @@ void TransportTx::handleMessage(cMessage* msg) {
 void TransportTx::handleFeedback(FeedbackPkt* msg) {
     int bufferSize = msg->getBufferSize();
     int currentBufferSize = msg->getCurrentBufferSize();
+    simtime_t msgTimeStamp = msg->getTimeStampRx();
 
     double ratio = (double)(bufferSize - currentBufferSize) / bufferSize;
 
-    if (ratio <= 0.25){
-        delay = 0.1;
-    }
-    else if (ratio > 0.5){
-        delay = -0.2;
-    }
-    else{
-        delay = 0;
+//    if (ratio <= 0.25){
+//        delay = 0.1;
+//    }
+//    else if (ratio > 0.5){
+//        delay = -0.2;
+//    }
+//    else{
+//        delay = 0;
+//    }
+    delay = 0;
+    if(countTimeStamp > 5){
+
+        if(msgTimeStamp > timeStampMean * 1.2){
+            delay = 0.1;
+            timeStampMean = msgTimeStamp;
+            countTimeStamp = 1;
+        }
+        else if(msgTimeStamp < timeStampMean * 0.5){
+            delay = -0.2;
+        }
     }
 
+    timeStampMean = ((timeStampMean*countTimeStamp) + msgTimeStamp) / (countTimeStamp + 1);
+    countTimeStamp++;
+    EV << "msgTimeStamp: "<< msgTimeStamp << "\n";
+    EV << "timeStampMean: "<< timeStampMean << "\n";
+    EV << "delay: "<< delay << "\n";
     delete msg;
 }
 

@@ -4,6 +4,7 @@
 #include <string.h>
 #include <omnetpp.h>
 #include "FeedbackPkt_m.h"
+#include "DataPkt_m.h"
 
 using namespace omnetpp;
 
@@ -25,7 +26,7 @@ protected:
     virtual void finish();
     virtual void handleMessage(cMessage *msg);
     void checkAndSendFeedback();
-    void sendFeedback();
+    void sendFeedback(DataPkt *msg);
 };
 
 Define_Module(TransportRx);
@@ -53,7 +54,7 @@ void TransportRx::finish()
 {
 }
 
-void TransportRx::sendFeedback()
+void TransportRx::sendFeedback(DataPkt *msg)
 {
     FeedbackPkt *feedbackPkt = new FeedbackPkt();
 
@@ -61,6 +62,9 @@ void TransportRx::sendFeedback()
     feedbackPkt->setKind(FEEDBACK);
     feedbackPkt->setCurrentBufferSize(buffer.getLength());
     feedbackPkt->setBufferSize(par("bufferSize").intValue());
+    simtime_t delay = simTime() - msg->getTimeStampTx();
+    feedbackPkt->setTimeStampRx(delay);
+
     send(feedbackPkt, "toApp");
 }
 
@@ -70,12 +74,12 @@ void TransportRx::handleMessage(cMessage *msg)
     {
         if (!buffer.isEmpty())
         {
-            cPacket *pkt = dynamic_cast<cPacket *>(buffer.pop());
+            DataPkt *pkt = dynamic_cast<DataPkt *>(buffer.pop());
             send(pkt, "toOut$o");
             serviceTime = pkt->getDuration();
             scheduleAt(simTime() + serviceTime, endServiceEvent);
 
-            sendFeedback();
+            sendFeedback(pkt);
         }
     }
     else if (msg->getKind() == 0)
@@ -94,8 +98,6 @@ void TransportRx::handleMessage(cMessage *msg)
             {
                 scheduleAt(simTime(), endServiceEvent);
             }
-
-            sendFeedback();
         }
     }
 }

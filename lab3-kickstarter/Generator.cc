@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <omnetpp.h>
+#include "DataPkt_m.h"
 
 using namespace omnetpp;
 
@@ -43,7 +44,7 @@ void Generator::finish() {
 void Generator::handleMessage(cMessage *msg) {
 
     // create new packet
-    cPacket *pkt = new cPacket("packet");
+    DataPkt *pkt = new DataPkt("packet");
     pkt->setByteLength(par("packetByteSize"));
     pkt->setKind(0);
     // send to the output

@@ -39,10 +39,12 @@ OBJS = \
     $O/Sink.o \
     $O/TransportRx.o \
     $O/TransportTx.o \
+    $O/DataPkt_m.o \
     $O/FeedbackPkt_m.o
 
 # Message files
 MSGFILES = \
+    DataPkt.msg \
     FeedbackPkt.msg
 
 # SM files

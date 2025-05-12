@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by opp_msgtool 6.0 from FeedbackPkt.msg.
+// Generated file, do not edit! Created by opp_msgtool 6.0 from DataPkt.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -28,7 +28,7 @@
 #include <sstream>
 #include <memory>
 #include <type_traits>
-#include "FeedbackPkt_m.h"
+#include "DataPkt_m.h"
 
 namespace omnetpp {
 
@@ -150,24 +150,22 @@ void doParsimUnpacking(omnetpp::cCommBuffer *, T& t)
 
 }  // namespace omnetpp
 
-Register_Enum(typePkt, (typePkt::DATA, typePkt::FEEDBACK));
+Register_Class(DataPkt)
 
-Register_Class(FeedbackPkt)
-
-FeedbackPkt::FeedbackPkt(const char *name, short kind) : ::omnetpp::cPacket(name, kind)
+DataPkt::DataPkt(const char *name, short kind) : ::omnetpp::cPacket(name, kind)
 {
 }
 
-FeedbackPkt::FeedbackPkt(const FeedbackPkt& other) : ::omnetpp::cPacket(other)
+DataPkt::DataPkt(const DataPkt& other) : ::omnetpp::cPacket(other)
 {
     copy(other);
 }
 
-FeedbackPkt::~FeedbackPkt()
+DataPkt::~DataPkt()
 {
 }
 
-FeedbackPkt& FeedbackPkt::operator=(const FeedbackPkt& other)
+DataPkt& DataPkt::operator=(const DataPkt& other)
 {
     if (this == &other) return *this;
     ::omnetpp::cPacket::operator=(other);
@@ -175,71 +173,43 @@ FeedbackPkt& FeedbackPkt::operator=(const FeedbackPkt& other)
     return *this;
 }
 
-void FeedbackPkt::copy(const FeedbackPkt& other)
+void DataPkt::copy(const DataPkt& other)
 {
-    this->currentBufferSize = other.currentBufferSize;
-    this->bufferSize = other.bufferSize;
-    this->timeStampRx = other.timeStampRx;
+    this->timeStampTx = other.timeStampTx;
 }
 
-void FeedbackPkt::parsimPack(omnetpp::cCommBuffer *b) const
+void DataPkt::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::omnetpp::cPacket::parsimPack(b);
-    doParsimPacking(b,this->currentBufferSize);
-    doParsimPacking(b,this->bufferSize);
-    doParsimPacking(b,this->timeStampRx);
+    doParsimPacking(b,this->timeStampTx);
 }
 
-void FeedbackPkt::parsimUnpack(omnetpp::cCommBuffer *b)
+void DataPkt::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::omnetpp::cPacket::parsimUnpack(b);
-    doParsimUnpacking(b,this->currentBufferSize);
-    doParsimUnpacking(b,this->bufferSize);
-    doParsimUnpacking(b,this->timeStampRx);
+    doParsimUnpacking(b,this->timeStampTx);
 }
 
-int FeedbackPkt::getCurrentBufferSize() const
+omnetpp::simtime_t DataPkt::getTimeStampTx() const
 {
-    return this->currentBufferSize;
+    return this->timeStampTx;
 }
 
-void FeedbackPkt::setCurrentBufferSize(int currentBufferSize)
+void DataPkt::setTimeStampTx(omnetpp::simtime_t timeStampTx)
 {
-    this->currentBufferSize = currentBufferSize;
+    this->timeStampTx = timeStampTx;
 }
 
-int FeedbackPkt::getBufferSize() const
-{
-    return this->bufferSize;
-}
-
-void FeedbackPkt::setBufferSize(int bufferSize)
-{
-    this->bufferSize = bufferSize;
-}
-
-omnetpp::simtime_t FeedbackPkt::getTimeStampRx() const
-{
-    return this->timeStampRx;
-}
-
-void FeedbackPkt::setTimeStampRx(omnetpp::simtime_t timeStampRx)
-{
-    this->timeStampRx = timeStampRx;
-}
-
-class FeedbackPktDescriptor : public omnetpp::cClassDescriptor
+class DataPktDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertyNames;
     enum FieldConstants {
-        FIELD_currentBufferSize,
-        FIELD_bufferSize,
-        FIELD_timeStampRx,
+        FIELD_timeStampTx,
     };
   public:
-    FeedbackPktDescriptor();
-    virtual ~FeedbackPktDescriptor();
+    DataPktDescriptor();
+    virtual ~DataPktDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -265,24 +235,24 @@ class FeedbackPktDescriptor : public omnetpp::cClassDescriptor
     virtual void setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const override;
 };
 
-Register_ClassDescriptor(FeedbackPktDescriptor)
+Register_ClassDescriptor(DataPktDescriptor)
 
-FeedbackPktDescriptor::FeedbackPktDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(FeedbackPkt)), "omnetpp::cPacket")
+DataPktDescriptor::DataPktDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(DataPkt)), "omnetpp::cPacket")
 {
     propertyNames = nullptr;
 }
 
-FeedbackPktDescriptor::~FeedbackPktDescriptor()
+DataPktDescriptor::~DataPktDescriptor()
 {
     delete[] propertyNames;
 }
 
-bool FeedbackPktDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool DataPktDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<FeedbackPkt *>(obj)!=nullptr;
+    return dynamic_cast<DataPkt *>(obj)!=nullptr;
 }
 
-const char **FeedbackPktDescriptor::getPropertyNames() const
+const char **DataPktDescriptor::getPropertyNames() const
 {
     if (!propertyNames) {
         static const char *names[] = {  nullptr };
@@ -293,19 +263,19 @@ const char **FeedbackPktDescriptor::getPropertyNames() const
     return propertyNames;
 }
 
-const char *FeedbackPktDescriptor::getProperty(const char *propertyName) const
+const char *DataPktDescriptor::getProperty(const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     return base ? base->getProperty(propertyName) : nullptr;
 }
 
-int FeedbackPktDescriptor::getFieldCount() const
+int DataPktDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
-    return base ? 3+base->getFieldCount() : 3;
+    return base ? 1+base->getFieldCount() : 1;
 }
 
-unsigned int FeedbackPktDescriptor::getFieldTypeFlags(int field) const
+unsigned int DataPktDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -314,14 +284,12 @@ unsigned int FeedbackPktDescriptor::getFieldTypeFlags(int field) const
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_currentBufferSize
-        FD_ISEDITABLE,    // FIELD_bufferSize
-        FD_ISEDITABLE,    // FIELD_timeStampRx
+        FD_ISEDITABLE,    // FIELD_timeStampTx
     };
-    return (field >= 0 && field < 3) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 1) ? fieldTypeFlags[field] : 0;
 }
 
-const char *FeedbackPktDescriptor::getFieldName(int field) const
+const char *DataPktDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -330,24 +298,20 @@ const char *FeedbackPktDescriptor::getFieldName(int field) const
         field -= base->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "currentBufferSize",
-        "bufferSize",
-        "timeStampRx",
+        "timeStampTx",
     };
-    return (field >= 0 && field < 3) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 1) ? fieldNames[field] : nullptr;
 }
 
-int FeedbackPktDescriptor::findField(const char *fieldName) const
+int DataPktDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     int baseIndex = base ? base->getFieldCount() : 0;
-    if (strcmp(fieldName, "currentBufferSize") == 0) return baseIndex + 0;
-    if (strcmp(fieldName, "bufferSize") == 0) return baseIndex + 1;
-    if (strcmp(fieldName, "timeStampRx") == 0) return baseIndex + 2;
+    if (strcmp(fieldName, "timeStampTx") == 0) return baseIndex + 0;
     return base ? base->findField(fieldName) : -1;
 }
 
-const char *FeedbackPktDescriptor::getFieldTypeString(int field) const
+const char *DataPktDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -356,14 +320,12 @@ const char *FeedbackPktDescriptor::getFieldTypeString(int field) const
         field -= base->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "int",    // FIELD_currentBufferSize
-        "int",    // FIELD_bufferSize
-        "omnetpp::simtime_t",    // FIELD_timeStampRx
+        "omnetpp::simtime_t",    // FIELD_timeStampTx
     };
-    return (field >= 0 && field < 3) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 1) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **FeedbackPktDescriptor::getFieldPropertyNames(int field) const
+const char **DataPktDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -376,7 +338,7 @@ const char **FeedbackPktDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *FeedbackPktDescriptor::getFieldProperty(int field, const char *propertyName) const
+const char *DataPktDescriptor::getFieldProperty(int field, const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -389,7 +351,7 @@ const char *FeedbackPktDescriptor::getFieldProperty(int field, const char *prope
     }
 }
 
-int FeedbackPktDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
+int DataPktDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -397,13 +359,13 @@ int FeedbackPktDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field)
             return base->getFieldArraySize(object, field);
         field -= base->getFieldCount();
     }
-    FeedbackPkt *pp = omnetpp::fromAnyPtr<FeedbackPkt>(object); (void)pp;
+    DataPkt *pp = omnetpp::fromAnyPtr<DataPkt>(object); (void)pp;
     switch (field) {
         default: return 0;
     }
 }
 
-void FeedbackPktDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
+void DataPktDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -413,13 +375,13 @@ void FeedbackPktDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field
         }
         field -= base->getFieldCount();
     }
-    FeedbackPkt *pp = omnetpp::fromAnyPtr<FeedbackPkt>(object); (void)pp;
+    DataPkt *pp = omnetpp::fromAnyPtr<DataPkt>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'FeedbackPkt'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'DataPkt'", field);
     }
 }
 
-const char *FeedbackPktDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
+const char *DataPktDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -427,13 +389,13 @@ const char *FeedbackPktDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr ob
             return base->getFieldDynamicTypeString(object,field,i);
         field -= base->getFieldCount();
     }
-    FeedbackPkt *pp = omnetpp::fromAnyPtr<FeedbackPkt>(object); (void)pp;
+    DataPkt *pp = omnetpp::fromAnyPtr<DataPkt>(object); (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string FeedbackPktDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
+std::string DataPktDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -441,16 +403,14 @@ std::string FeedbackPktDescriptor::getFieldValueAsString(omnetpp::any_ptr object
             return base->getFieldValueAsString(object,field,i);
         field -= base->getFieldCount();
     }
-    FeedbackPkt *pp = omnetpp::fromAnyPtr<FeedbackPkt>(object); (void)pp;
+    DataPkt *pp = omnetpp::fromAnyPtr<DataPkt>(object); (void)pp;
     switch (field) {
-        case FIELD_currentBufferSize: return long2string(pp->getCurrentBufferSize());
-        case FIELD_bufferSize: return long2string(pp->getBufferSize());
-        case FIELD_timeStampRx: return simtime2string(pp->getTimeStampRx());
+        case FIELD_timeStampTx: return simtime2string(pp->getTimeStampTx());
         default: return "";
     }
 }
 
-void FeedbackPktDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
+void DataPktDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -460,16 +420,14 @@ void FeedbackPktDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int f
         }
         field -= base->getFieldCount();
     }
-    FeedbackPkt *pp = omnetpp::fromAnyPtr<FeedbackPkt>(object); (void)pp;
+    DataPkt *pp = omnetpp::fromAnyPtr<DataPkt>(object); (void)pp;
     switch (field) {
-        case FIELD_currentBufferSize: pp->setCurrentBufferSize(string2long(value)); break;
-        case FIELD_bufferSize: pp->setBufferSize(string2long(value)); break;
-        case FIELD_timeStampRx: pp->setTimeStampRx(string2simtime(value)); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'FeedbackPkt'", field);
+        case FIELD_timeStampTx: pp->setTimeStampTx(string2simtime(value)); break;
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'DataPkt'", field);
     }
 }
 
-omnetpp::cValue FeedbackPktDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
+omnetpp::cValue DataPktDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -477,16 +435,14 @@ omnetpp::cValue FeedbackPktDescriptor::getFieldValue(omnetpp::any_ptr object, in
             return base->getFieldValue(object,field,i);
         field -= base->getFieldCount();
     }
-    FeedbackPkt *pp = omnetpp::fromAnyPtr<FeedbackPkt>(object); (void)pp;
+    DataPkt *pp = omnetpp::fromAnyPtr<DataPkt>(object); (void)pp;
     switch (field) {
-        case FIELD_currentBufferSize: return pp->getCurrentBufferSize();
-        case FIELD_bufferSize: return pp->getBufferSize();
-        case FIELD_timeStampRx: return pp->getTimeStampRx().dbl();
-        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'FeedbackPkt' as cValue -- field index out of range?", field);
+        case FIELD_timeStampTx: return pp->getTimeStampTx().dbl();
+        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'DataPkt' as cValue -- field index out of range?", field);
     }
 }
 
-void FeedbackPktDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
+void DataPktDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -496,16 +452,14 @@ void FeedbackPktDescriptor::setFieldValue(omnetpp::any_ptr object, int field, in
         }
         field -= base->getFieldCount();
     }
-    FeedbackPkt *pp = omnetpp::fromAnyPtr<FeedbackPkt>(object); (void)pp;
+    DataPkt *pp = omnetpp::fromAnyPtr<DataPkt>(object); (void)pp;
     switch (field) {
-        case FIELD_currentBufferSize: pp->setCurrentBufferSize(omnetpp::checked_int_cast<int>(value.intValue())); break;
-        case FIELD_bufferSize: pp->setBufferSize(omnetpp::checked_int_cast<int>(value.intValue())); break;
-        case FIELD_timeStampRx: pp->setTimeStampRx(value.doubleValue()); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'FeedbackPkt'", field);
+        case FIELD_timeStampTx: pp->setTimeStampTx(value.doubleValue()); break;
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'DataPkt'", field);
     }
 }
 
-const char *FeedbackPktDescriptor::getFieldStructName(int field) const
+const char *DataPktDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -518,7 +472,7 @@ const char *FeedbackPktDescriptor::getFieldStructName(int field) const
     };
 }
 
-omnetpp::any_ptr FeedbackPktDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
+omnetpp::any_ptr DataPktDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -526,13 +480,13 @@ omnetpp::any_ptr FeedbackPktDescriptor::getFieldStructValuePointer(omnetpp::any_
             return base->getFieldStructValuePointer(object, field, i);
         field -= base->getFieldCount();
     }
-    FeedbackPkt *pp = omnetpp::fromAnyPtr<FeedbackPkt>(object); (void)pp;
+    DataPkt *pp = omnetpp::fromAnyPtr<DataPkt>(object); (void)pp;
     switch (field) {
         default: return omnetpp::any_ptr(nullptr);
     }
 }
 
-void FeedbackPktDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
+void DataPktDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -542,9 +496,9 @@ void FeedbackPktDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, 
         }
         field -= base->getFieldCount();
     }
-    FeedbackPkt *pp = omnetpp::fromAnyPtr<FeedbackPkt>(object); (void)pp;
+    DataPkt *pp = omnetpp::fromAnyPtr<DataPkt>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'FeedbackPkt'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'DataPkt'", field);
     }
 }
 

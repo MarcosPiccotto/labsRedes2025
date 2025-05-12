@@ -42,6 +42,7 @@ inline void doParsimUnpacking(omnetpp::cCommBuffer *b, typePkt& e) { int n; b->u
  * {
  *     int currentBufferSize;
  *     int bufferSize;
+ *     simtime_t timeStampRx;
  * }
  * </pre>
  */
@@ -50,6 +51,7 @@ class FeedbackPkt : public ::omnetpp::cPacket
   protected:
     int currentBufferSize = 0;
     int bufferSize = 0;
+    omnetpp::simtime_t timeStampRx = SIMTIME_ZERO;
 
   private:
     void copy(const FeedbackPkt& other);
@@ -71,6 +73,9 @@ class FeedbackPkt : public ::omnetpp::cPacket
 
     virtual int getBufferSize() const;
     virtual void setBufferSize(int bufferSize);
+
+    virtual omnetpp::simtime_t getTimeStampRx() const;
+    virtual void setTimeStampRx(omnetpp::simtime_t timeStampRx);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const FeedbackPkt& obj) {obj.parsimPack(b);}

@@ -6,6 +6,6 @@ enum typePkt {
 packet FeedbackPkt {
     int currentBufferSize;
     int bufferSize; 
-//    FeedbackStatus feedbackStatus; 
+    simtime_t timeStampRx;
 }
 
