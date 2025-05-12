@@ -10,6 +10,8 @@ class Sink : public cSimpleModule {
 private:
     cStdDev delayStats;
     cOutVector delayVector;
+    cOutVector pktRecv;
+    int pkt_recv;
 public:
     Sink();
     virtual ~Sink();
@@ -31,6 +33,8 @@ void Sink::initialize(){
     // stats and vector names
     delayStats.setName("TotalDelay");
     delayVector.setName("Delay");
+    pktRecv.setName("Pkt recv");
+    pkt_recv = 0;
 }
 
 void Sink::finish(){
@@ -44,7 +48,8 @@ void Sink::handleMessage(cMessage * msg) {
     simtime_t delay = simTime() - msg->getCreationTime();
     // update stats
     delayStats.collect(delay);
-    delayVector.record(delay);
+    //delayVector.record(delay);
+    pktRecv.record(++pkt_recv);
     // delete msg
     delete(msg);
 }
