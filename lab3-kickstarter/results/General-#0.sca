@@ -1,8 +1,8 @@
 version 3
-run General-0-20250512-12:20:33-12591
+run General-0-20250513-12:55:32-6636
 attr configname General
-attr datetime 20250512-12:20:33
-attr datetimef 20250512-122033
+attr datetime 20250513-12:55:32
+attr datetimef 20250513-125532
 attr experiment General
 attr inifile omnetpp.ini
 attr iterationvars ""
@@ -10,7 +10,7 @@ attr iterationvarsd ""
 attr iterationvarsf ""
 attr measurement ""
 attr network Network
-attr processid 12591
+attr processid 6636
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -45,7 +45,7 @@ attr mutable ""
 par Network.queue0.out.channel delay 0.0001s
 attr mutable ""
 attr unit s
-par Network.queue0.out.channel datarate 500000bps
+par Network.queue0.out.channel datarate 1e+06bps
 attr mutable ""
 attr unit bps
 par Network.queue0.out.channel ber 0
@@ -68,7 +68,7 @@ attr mutable ""
 par Network.nodeRx.traRx.toOut$o.channel delay 0s
 attr mutable ""
 attr unit s
-par Network.nodeRx.traRx.toOut$o.channel datarate 1e+06bps
+par Network.nodeRx.traRx.toOut$o.channel datarate 500000bps
 attr mutable ""
 attr unit bps
 par Network.nodeRx.traRx.toOut$o.channel ber 0
@@ -76,7 +76,7 @@ attr mutable ""
 par Network.nodeRx.traRx.toOut$o.channel per 0
 attr mutable ""
 par Network.nodeRx.sink typename "\"Sink\""
-scalar Network.nodeRx.sink "Avg delay" 37.100811639074
+scalar Network.nodeRx.sink "Avg delay" 99.3992268338
 scalar Network.nodeRx.sink "Number of packets" 1998
 par Network.nodeRx.traRx typename "\"TransportRx\""
 par Network.nodeRx.traRx bufferSize 200

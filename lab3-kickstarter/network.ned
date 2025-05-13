@@ -109,6 +109,7 @@ network Network
         }
     connections:
         nodeTx.out --> {  datarate = 1Mbps; delay = 100us; } --> queue0.in;
+        
         // case study 1:
         queue0.out --> {  datarate = 1Mbps; delay = 100us; } --> nodeRx.in;
         // case study 2:

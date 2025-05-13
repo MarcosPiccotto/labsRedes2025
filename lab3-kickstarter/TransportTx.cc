@@ -18,9 +18,9 @@ private:
     cOutVector bufferSizeVector;
     cOutVector delayPkt;
     float delay;
-    bool gominola;
+    bool flag;
     simtime_t timeStampMean;
-    uint countTimeStamp;
+    unsigned int countTimeStamp;
 
 public:
     TransportTx();
@@ -31,6 +31,8 @@ protected:
     virtual void handleMessage(cMessage *msg);
 private:
     virtual void handleFeedback(FeedbackPkt *msg);
+    void flowControl(FeedbackPkt *msg);
+    void congestionControl(FeedbackPkt *msg);
 
 };
 
@@ -50,7 +52,7 @@ void TransportTx::initialize() {
     bufferSizeVector.setName("buffer size");
     delayPkt.setName("delay_pkt");
     delay = 0;
-    gominola = false;
+    flag = false;
     serviceTime = 0.1;
     timeStampMean = 0;
     countTimeStamp = 0;
@@ -105,23 +107,29 @@ void TransportTx::handleMessage(cMessage* msg) {
     }
 }
 
-void TransportTx::handleFeedback(FeedbackPkt* msg) {
-//    int bufferSize = msg->getBufferSize();
-//    int currentBufferSize = msg->getCurrentBufferSize();
+void TransportTx::flowControl(FeedbackPkt* msg) {
+    int bufferSize = msg->getBufferSize();
+    int currentBufferSize = msg->getCurrentBufferSize();
+
+    double ratio = (double)(bufferSize - currentBufferSize) / bufferSize;
+
+    if (ratio <= 0.25) {
+        delay = 0.1;
+    }
+    else if (ratio > 0.5) {
+        delay = -0.2;
+    }
+    else {
+        delay = 0;
+    }
+}
+
+void TransportTx::congestionControl(FeedbackPkt* msg) {
     simtime_t msgTimeStamp = msg->getTimeStampRx();
-//
-//    double ratio = (double)(bufferSize - currentBufferSize) / bufferSize;
-//
-//    if (ratio <= 0.25){
-//        delay = 0.1;
-//    }
-//    else if (ratio > 0.5){
-//        delay = -0.2;
-//    }else {
-//        delay = 0;
-//    }
+
     delay = 0;
-    if(countTimeStamp > 10 or gominola){
+
+    if(countTimeStamp > 10 || flag){
         if(msgTimeStamp > timeStampMean * 1.2){
             delay = 0.2;
             timeStampMean = msgTimeStamp;
@@ -130,17 +138,24 @@ void TransportTx::handleFeedback(FeedbackPkt* msg) {
         else if(msgTimeStamp < timeStampMean * 0.2){
             delay = -0.1;
         }
-        gominola = true;
+        flag = true;
     }
-    timeStampMean = ((timeStampMean*countTimeStamp) + msgTimeStamp) / (countTimeStamp + 1);
+
+    timeStampMean = ((timeStampMean * countTimeStamp) + msgTimeStamp) / (countTimeStamp + 1);
     countTimeStamp++;
 
     delayPkt.record(msgTimeStamp);
+}
 
-    //delay = std::max(delayFlujo, delayCongestion);
-    EV << "msgTimeStamp: "<< msgTimeStamp << "\n";
-    EV << "timeStampMean: "<< timeStampMean << "\n";
-    EV << "delay: "<< delay << "\n";
+
+void TransportTx::handleFeedback(FeedbackPkt* msg) {
+
+    // Ya que no pudimos implementar los dos al mismo tiempo
+    // en esta parte se elige cuál control usar.
+
+    // flowControl(msg);
+    congestionControl(msg);
+
     delete msg;
 }
 

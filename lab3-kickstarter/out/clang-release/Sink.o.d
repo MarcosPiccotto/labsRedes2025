@@ -1,3 +1,3 @@
-out/clang-release//Sink.o: Sink.cc \
-  /home/marcospiccotto/Downloads/omnetpp-6.0.1/include/omnetpp.h
-/home/marcospiccotto/Downloads/omnetpp-6.0.1/include/omnetpp.h:
+out/clang-release//Sink.o: Sink.cc C:/Omnet++/include/omnetpp.h
+
+C:/Omnet++/include/omnetpp.h:
