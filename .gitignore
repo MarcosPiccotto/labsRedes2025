@@ -1,7 +1,12 @@
 *.pyc
-
-# Los entornos virtuales no se versionan
+__pycache__/
 .venv
 .env
 venv
 env
+.vscode/
+.idea/
+.DS_Store
+*.log
+*.sqlite3
+*.db
